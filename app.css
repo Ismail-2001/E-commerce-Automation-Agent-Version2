@@ -1,0 +1,18 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* ─── Theme overrides ────────────────────────────────────────────── */
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ─── Custom utilities ───────────────────────────────────────────── */
+
+/* Hide scrollbar (used by chat panel) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

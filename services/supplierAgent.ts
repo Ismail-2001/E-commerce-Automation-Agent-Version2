@@ -1,5 +1,6 @@
 import { Product } from '../types';
 import { sanitizeForPrompt } from '../lib/promptSafety';
+import { callAiProxy } from '../lib/aiProxy';
 
 export interface SupplierRecommendation {
   productId: string;
@@ -17,7 +18,6 @@ export interface SupplierRecommendation {
  */
 export function analyzeSupplierNeeds(products: Product[]): SupplierRecommendation[] {
   return products.map(product => {
-    // Estimate wholesale cost at ~40% of retail
     const wholesaleCost = product.price * 0.4;
 
     if (product.stock === 0) {
@@ -76,45 +76,24 @@ export function analyzeSupplierNeeds(products: Product[]): SupplierRecommendatio
 }
 
 /**
- * Generates a vendor negotiation email draft using DeepSeek.
+ * Generates a vendor negotiation email draft using DeepSeek via proxy.
  */
 export async function generateNegotiationEmail(recommendation: SupplierRecommendation): Promise<string> {
-  const apiKey = process.env.API_KEY || '';
-  if (!apiKey) {
-    return `Subject: Reorder Request — ${recommendation.productName}\n\nDear Supplier,\n\nWe would like to place an order for ${recommendation.suggestedQuantity} units of ${recommendation.productName}.\n\nPlease provide your best pricing and estimated delivery timeline.\n\nBest regards,\nAutoAgent Procurement`;
-  }
-
   const safeProductName = sanitizeForPrompt(recommendation.productName);
 
   try {
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          { role: 'system', content: 'You are a professional procurement specialist. Write concise, strategic vendor emails.' },
-          {
-            role: 'user',
-            content: `Write a professional vendor email for:
+    return await callAiProxy({
+      provider: 'deepseek',
+      systemPrompt: 'You are a professional procurement specialist. Write concise, strategic vendor emails.',
+      userMessage: `Write a professional vendor email for:
 Product: ${safeProductName}
 Action: ${recommendation.action}
 Quantity: ${recommendation.suggestedQuantity} units
 Negotiation Strategy: ${recommendation.negotiationTip}
 
 Keep it brief, professional, and strategically phrased. Include Subject Line and Body.`,
-          },
-        ],
-        temperature: 0.7,
-      }),
+      temperature: 0.7,
     });
-
-    if (!response.ok) throw new Error('API error');
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || 'Could not generate email.';
   } catch {
     return `Subject: Order Inquiry — ${recommendation.productName}\n\nDear Supplier,\n\nWe need ${recommendation.suggestedQuantity} units of ${recommendation.productName}.\n\n${recommendation.negotiationTip}\n\nPlease advise.\n\nBest,\nAutoAgent`;
   }

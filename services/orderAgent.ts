@@ -1,7 +1,6 @@
 import { Order } from '../types';
 import { sanitizeForPrompt } from '../lib/promptSafety';
-
-const apiKey = process.env.API_KEY || '';
+import { callAiProxy } from '../lib/aiProxy';
 
 export interface OrderInsight {
     type: 'vip' | 'return_risk' | 'pending' | 'ok';
@@ -14,7 +13,6 @@ export interface OrderInsight {
  * Generates AI-powered insights for specific orders.
  */
 export const analyzeOrder = async (order: Order): Promise<OrderInsight> => {
-    // Local logic for instant classification
     if (order.status === 'Returned') {
         return {
             type: 'return_risk',
@@ -51,30 +49,27 @@ export const analyzeOrder = async (order: Order): Promise<OrderInsight> => {
 };
 
 /**
- * Uses DeepSeek to generate customer support content.
+ * Uses DeepSeek (via proxy) to generate customer support content.
  */
 export const generateOrderActionContent = async (order: Order, insightType: string): Promise<string> => {
-    if (!apiKey) return "AI API Key missing.";
-
-    // Sanitize user-controlled inputs
     const safeCustomerName = sanitizeForPrompt(order.customerName);
 
-    let prompt = "";
+    let userMessage = "";
 
     if (insightType === 'vip') {
-        prompt = `
+        userMessage = `
         Write a personalized, premium "Thank You" email for a VIP customer named ${safeCustomerName}.
         They just spent $${order.total}.
         Offer them early access to our next collection as a token of appreciation.
         `;
     } else if (insightType === 'return_risk') {
-        prompt = `
+        userMessage = `
         Write a polite, empathetic email to ${safeCustomerName} regarding their returned order ${order.id}.
         Ask for feedback on why they returned the item so we can improve.
         Keep it professional and understanding.
         `;
     } else if (insightType === 'pending') {
-        prompt = `
+        userMessage = `
         Write a status update email to ${safeCustomerName} for Order ${order.id}.
         Inform them that their order is being packed and will ship within 24 hours.
         Provide a placeholder tracking link.
@@ -84,27 +79,13 @@ export const generateOrderActionContent = async (order: Order, insightType: stri
     }
 
     try {
-        const response = await fetch('https://api.deepseek.com/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: 'deepseek-chat',
-                messages: [
-                    { role: 'system', content: "You are a customer success AI agent." },
-                    { role: 'user', content: prompt }
-                ],
-                temperature: 0.7
-            })
+        return await callAiProxy({
+            provider: 'deepseek',
+            systemPrompt: 'You are a customer success AI agent.',
+            userMessage,
+            temperature: 0.7,
         });
-
-        if (!response.ok) throw new Error('AI Request Failed');
-
-        const data = await response.json();
-        return data.choices?.[0]?.message?.content || "Could not generate content.";
-    } catch (e) {
+    } catch {
         return "AI Service Unavailable.";
     }
 };

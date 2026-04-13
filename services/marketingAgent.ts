@@ -1,5 +1,6 @@
 import { Product } from '../types';
 import { sanitizeForPrompt } from '../lib/promptSafety';
+import { callAiProxy } from '../lib/aiProxy';
 
 export interface MarketingCampaign {
   productId: string;
@@ -18,7 +19,6 @@ export interface MarketingCampaign {
  */
 export function generateCampaignBriefs(products: Product[]): MarketingCampaign[] {
   return products.map(product => {
-    // Determine campaign type based on inventory status
     if (product.stock > 100) {
       return {
         productId: product.id,
@@ -76,31 +76,17 @@ export function generateCampaignBriefs(products: Product[]): MarketingCampaign[]
 }
 
 /**
- * Generates AI-powered ad copy using DeepSeek.
+ * Generates AI-powered ad copy using DeepSeek via proxy.
  */
 export async function generateAICopy(product: Product, platform: string): Promise<string> {
-  const apiKey = process.env.API_KEY || '';
-  if (!apiKey) {
-    return `Check out ${product.name} — the ${product.category} essential you've been waiting for! Now at $${product.price}. Shop now!`;
-  }
-
   const safeProductName = sanitizeForPrompt(product.name);
   const safeCategory = sanitizeForPrompt(product.category);
 
   try {
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          { role: 'system', content: `You are a world-class e-commerce copywriter specializing in ${platform} ads.` },
-          {
-            role: 'user',
-            content: `Write a compelling ${platform} ad for:
+    return await callAiProxy({
+      provider: 'deepseek',
+      systemPrompt: `You are a world-class e-commerce copywriter specializing in ${platform} ads.`,
+      userMessage: `Write a compelling ${platform} ad for:
 Product: ${safeProductName}
 Category: ${safeCategory}
 Price: $${product.price}
@@ -111,15 +97,8 @@ Requirements:
 - Tone: Engaging, urgent, conversion-focused
 - Include a strong CTA
 - Keep it under 150 words`,
-          },
-        ],
-        temperature: 0.8,
-      }),
+      temperature: 0.8,
     });
-
-    if (!response.ok) throw new Error('API error');
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || 'Could not generate copy.';
   } catch {
     return `${product.name} — Premium ${product.category} at $${product.price}. Limited stock available. Order now!`;
   }

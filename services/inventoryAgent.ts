@@ -1,7 +1,6 @@
 import { Product } from '../types';
 import { sanitizeForPrompt } from '../lib/promptSafety';
-
-const apiKey = process.env.API_KEY || '';
+import { callAiProxy } from '../lib/aiProxy';
 
 export interface InventoryInsight {
     type: 'restock' | 'dead_stock' | 'opportunity' | 'ok';
@@ -14,7 +13,6 @@ export interface InventoryInsight {
  * Generates AI-powered insights for specific inventory items.
  */
 export const analyzeInventoryItem = async (product: Product): Promise<InventoryInsight> => {
-    // Local logic for instant feedback (Hybrid AI approach)
     if (product.stock === 0) {
         return {
             type: 'restock',
@@ -42,7 +40,6 @@ export const analyzeInventoryItem = async (product: Product): Promise<InventoryI
         };
     }
 
-    // Default "Smart" response fallback if no critical rules met
     return {
         type: 'ok',
         message: `${product.name} inventory levels are healthy. Sales velocity is stable.`,
@@ -52,18 +49,15 @@ export const analyzeInventoryItem = async (product: Product): Promise<InventoryI
 };
 
 /**
- * Uses DeepSeek to generate a vendor reorder email or marketing copy.
+ * Uses DeepSeek (via proxy) to generate a vendor reorder email or marketing copy.
  */
 export const generateInventoryActionContent = async (product: Product, insightType: string): Promise<string> => {
-    if (!apiKey) return "AI API Key missing. Please check configuration.";
-
-    // Sanitize user-controlled inputs
     const safeProductName = sanitizeForPrompt(product.name);
 
-    let prompt = "";
+    let userMessage = "";
 
     if (insightType === 'restock') {
-        prompt = `
+        userMessage = `
         Write a professional vendor reorder email for:
         Product: ${safeProductName}
         Current Stock: ${product.stock}
@@ -72,7 +66,7 @@ export const generateInventoryActionContent = async (product: Product, insightTy
         Keep it brief and business-professional.
         `;
     } else if (insightType === 'dead_stock') {
-        prompt = `
+        userMessage = `
         Write a catchy social media post (Instagram/Twitter) for a FLASH SALE on:
         Product: ${safeProductName}
 
@@ -80,31 +74,17 @@ export const generateInventoryActionContent = async (product: Product, insightTy
         Use emojis and create urgency.
         `;
     } else {
-        prompt = `Write a short 2-sentence creative product description for ${safeProductName} that highlights its key features.`;
+        userMessage = `Write a short 2-sentence creative product description for ${safeProductName} that highlights its key features.`;
     }
 
     try {
-        const response = await fetch('https://api.deepseek.com/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify({
-                model: 'deepseek-chat',
-                messages: [
-                    { role: 'system', content: "You are an efficient e-commerce operations assistant." },
-                    { role: 'user', content: prompt }
-                ],
-                temperature: 0.7
-            })
+        return await callAiProxy({
+            provider: 'deepseek',
+            systemPrompt: 'You are an efficient e-commerce operations assistant.',
+            userMessage,
+            temperature: 0.7,
         });
-
-        if (!response.ok) throw new Error('AI Request Failed');
-
-        const data = await response.json();
-        return data.choices?.[0]?.message?.content || "Could not generate content.";
-    } catch (e) {
+    } catch {
         return "AI Service Unavailable. Please try again later.";
     }
 };
