@@ -1,4 +1,5 @@
 import { Cart } from '../types';
+import { sanitizeForPrompt } from '../lib/promptSafety';
 
 const apiKey = process.env.API_KEY || '';
 
@@ -26,27 +27,31 @@ export const generateRecoveryEmail = async (cart: Cart): Promise<string> => {
 
     const cartItemsList = cart.items.map(item => `${item.quantity}x ${item.productName} ($${item.price})`).join('\n');
 
+    // Sanitize all user-controlled inputs
+    const safeCustomerName = sanitizeForPrompt(cart.customerName);
+    const safeProductNames = cart.items.map(i => sanitizeForPrompt(i.productName)).join(', ');
+
     const strategyContext = isHighValue
         ? `STRATEGY: This is a HIGH-VALUE CART ($${cart.totalValue}). You must offer a 15% discount using the code: ${discountCode}. Make the email feel exclusive and urgent.`
         : `STRATEGY: This is a standard cart. Do not offer a discount. Focus on the quality of items and "low stock" fear of missing out (FOMO).`;
 
     const prompt = `
-    You are an expert E-commerce Conversion Specialist. 
+    You are an expert E-commerce Conversion Specialist.
     Write a highly persuasive, friendly, and non-intrusive abandoned cart recovery email.
-    
-    Customer Name: ${cart.customerName}
+
+    Customer Name: ${safeCustomerName}
     Cart Value: $${cart.totalValue}
     Items in Cart:
     ${cartItemsList}
-    
+
     ${strategyContext}
-    
+
     The email should:
     1. Acknowledge that life gets busy.
     2. Highlight the specific items they left.
     3. If a discount is provided, make it the "Hero" of the email.
     4. End with a strong Call to Action.
-    
+
     Output ONLY binary content of the email (Subject Line and Body).
     `;
 

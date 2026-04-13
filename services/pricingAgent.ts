@@ -29,7 +29,9 @@ export function analyzePricing(products: Product[], salesData: { sales: number; 
 
     // High stock + slow movement → decrease price to accelerate sales
     if (product.stock > 100 && product.status === 'In Stock') {
-      const discount = 0.10 + Math.random() * 0.05; // 10-15% discount
+      // Deterministic discount based on stock level (more stock = higher discount)
+      const stockRatio = Math.min(product.stock / 200, 1); // 0-1 scale
+      const discount = 0.10 + stockRatio * 0.05; // 10-15% based on stock level
       suggestedPrice = Math.round((product.price * (1 - discount)) * 100) / 100;
       strategy = 'decrease';
       reason = `Overstock detected (${product.stock} units). Recommending ${Math.round(discount * 100)}% markdown to accelerate turnover and free up cash flow.`;
@@ -37,7 +39,9 @@ export function analyzePricing(products: Product[], salesData: { sales: number; 
     }
     // Low stock + high demand → increase price for margin optimization
     else if (product.stock > 0 && product.stock < 10) {
-      const increase = 0.05 + Math.random() * 0.10; // 5-15% increase
+      // Deterministic increase based on scarcity (lower stock = higher increase)
+      const scarcityRatio = 1 - (product.stock / 10); // 0-1 scale
+      const increase = 0.05 + scarcityRatio * 0.10; // 5-15% based on scarcity
       suggestedPrice = Math.round((product.price * (1 + increase)) * 100) / 100;
       strategy = 'increase';
       reason = `Low stock (${product.stock} units) with continued demand. Price elasticity allows ${Math.round(increase * 100)}% uplift before restock arrives.`;

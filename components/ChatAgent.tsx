@@ -21,6 +21,8 @@ const ChatAgent: React.FC = () => {
     },
   });
 
+  const messageCounter = useRef(0);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -33,7 +35,7 @@ const ChatAgent: React.FC = () => {
     if (!text.trim()) return;
 
     const userMsg: ChatMessage = {
-      id: Date.now().toString(),
+      id: `user-${Date.now()}-${++messageCounter.current}`,
       role: 'user',
       content: text,
       timestamp: new Date()
@@ -66,7 +68,7 @@ const ChatAgent: React.FC = () => {
       }
 
       const aiMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: `ai-${Date.now()}-${++messageCounter.current}`,
         role: 'model',
         content: parsedResponse.text || "Processed.",
         widget: parsedResponse.ui_widget,
@@ -81,7 +83,7 @@ const ChatAgent: React.FC = () => {
       }
     } catch (error) {
       const errorMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: `err-${Date.now()}-${++messageCounter.current}`,
         role: 'model',
         content: "Network error. Please try again.",
         timestamp: new Date(),
@@ -107,8 +109,8 @@ const ChatAgent: React.FC = () => {
   ];
 
   const renderWidget = (msg: ChatMessage) => {
-    if (msg.widget === 'product_card' && msg.widgetData) {
-      const p = msg.widgetData;
+    if (msg.widget === 'product_card' && msg.widgetData && 'name' in msg.widgetData) {
+      const p = msg.widgetData as import('../types').ProductWidgetData;
       return (
         <div className="mt-3 p-3 bg-white border border-gray-200 rounded-xl shadow-sm flex items-center gap-4 max-w-sm">
           <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">

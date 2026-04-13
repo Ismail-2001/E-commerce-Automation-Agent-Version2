@@ -23,11 +23,9 @@ const Inventory: React.FC = () => {
     setLoading(true);
     setActionContent('');
 
-    setTimeout(async () => {
-      const insight = await analyzeInventoryItem(product);
-      setAiInsight(insight);
-      setLoading(false);
-    }, 600);
+    const insight = await analyzeInventoryItem(product);
+    setAiInsight(insight);
+    setLoading(false);
   };
 
   const handleExecuteAction = async () => {

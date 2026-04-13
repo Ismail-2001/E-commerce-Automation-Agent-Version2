@@ -73,6 +73,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const slug = merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
       const { data: merchant, error: merchantError } = await supabase
         .from('merchants')
+        // @ts-expect-error — Supabase type inference mismatch with generated Database types
         .insert({ owner_id: data.user.id, name: merchantName, slug })
         .select()
         .single();
@@ -80,6 +81,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (merchantError) throw merchantError;
 
       // Seed demo data
+      // @ts-expect-error — Supabase RPC type inference
       await supabase.rpc('seed_demo_data', { p_merchant_id: merchant.id });
 
       set({ user: data.user, merchant, loading: false });
@@ -115,5 +117,5 @@ async function fetchMerchant(userId: string): Promise<Merchant | null> {
     .select('id, name, slug')
     .eq('owner_id', userId)
     .single();
-  return data;
+  return data as Merchant | null;
 }

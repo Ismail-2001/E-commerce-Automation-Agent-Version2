@@ -43,10 +43,10 @@ const Layout: React.FC<LayoutProps> = ({ currentView, onNavigate, children }) =>
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-slate-300 fixed h-full transition-all">
+      <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-slate-300 fixed h-full transition-all" role="navigation" aria-label="Main navigation">
         <div className="p-6">
           <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Bot className="w-6 h-6 text-indigo-400" />
+            <Bot className="w-6 h-6 text-indigo-400" aria-hidden="true" />
             AutoAgent
           </h1>
           {merchant ? (
@@ -67,13 +67,15 @@ const Layout: React.FC<LayoutProps> = ({ currentView, onNavigate, children }) =>
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id as ViewState)}
+                aria-label={`Navigate to ${item.label}`}
+                aria-current={isActive ? 'page' : undefined}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
                   ${isActive
                     ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
                     : 'hover:bg-slate-800 text-slate-400 hover:text-white'
                   }`}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="w-5 h-5" aria-hidden="true" />
                 <span className="font-medium">{item.label}</span>
               </button>
             );
@@ -88,17 +90,19 @@ const Layout: React.FC<LayoutProps> = ({ currentView, onNavigate, children }) =>
           )}
           <button
             onClick={() => onNavigate('settings')}
+            aria-label="Navigate to Settings"
             className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
           >
-            <Settings className="w-5 h-5" />
+            <Settings className="w-5 h-5" aria-hidden="true" />
             <span>Settings</span>
           </button>
           {user && (
             <button
               onClick={signOut}
+              aria-label="Sign out"
               className="w-full flex items-center gap-3 px-4 py-3 text-rose-400 hover:text-rose-300 hover:bg-rose-900/10 rounded-xl transition-colors mt-2"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-5 h-5" aria-hidden="true" />
               <span>Sign Out</span>
             </button>
           )}
@@ -106,14 +110,14 @@ const Layout: React.FC<LayoutProps> = ({ currentView, onNavigate, children }) =>
       </aside>
 
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 w-full bg-slate-900 text-white z-50 px-4 py-3 flex justify-between items-center shadow-md">
+      <div className="md:hidden fixed top-0 w-full bg-slate-900 text-white z-50 px-4 py-3 flex justify-between items-center shadow-md" role="banner">
         <div className="flex items-center gap-2">
-          <Bot className="w-6 h-6 text-indigo-400" />
+          <Bot className="w-6 h-6 text-indigo-400" aria-hidden="true" />
           <span className="font-bold">AutoAgent</span>
           {merchant && <span className="text-xs text-slate-400 ml-1">• {merchant.name}</span>}
         </div>
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X /> : <Menu />}
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileMenuOpen}>
+          {mobileMenuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
         </button>
       </div>
 
@@ -130,10 +134,12 @@ const Layout: React.FC<LayoutProps> = ({ currentView, onNavigate, children }) =>
                     onNavigate(item.id as ViewState);
                     setMobileMenuOpen(false);
                   }}
+                  aria-label={`Navigate to ${item.label}`}
+                  aria-current={currentView === item.id ? 'page' : undefined}
                   className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-lg font-medium
                             ${currentView === item.id ? 'bg-indigo-600 text-white' : 'text-slate-300'}`}
                 >
-                  <Icon className="w-6 h-6" />
+                  <Icon className="w-6 h-6" aria-hidden="true" />
                   {item.label}
                 </button>
               )

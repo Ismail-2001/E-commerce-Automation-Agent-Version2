@@ -20,6 +20,7 @@ interface DataState {
   agentActivity: AgentActivity[];
   loading: boolean;
   useLiveData: boolean;
+  realtimeChannel: RealtimeChannel | null;
 
   // Actions
   fetchAll: (merchantId: string) => Promise<void>;
@@ -43,8 +44,6 @@ interface DataState {
   loadMockData: () => void;
 }
 
-let realtimeChannel: RealtimeChannel | null = null;
-
 export const useDataStore = create<DataState>((set, get) => ({
   products: [],
   orders: [],
@@ -53,6 +52,7 @@ export const useDataStore = create<DataState>((set, get) => ({
   agentActivity: [],
   loading: false,
   useLiveData: false,
+  realtimeChannel: null,
 
   loadMockData: () => {
     set({
@@ -160,7 +160,7 @@ export const useDataStore = create<DataState>((set, get) => ({
   subscribeRealtime: (merchantId) => {
     get().unsubscribeRealtime();
 
-    realtimeChannel = supabase
+    const channel = supabase
       .channel(`merchant-${merchantId}`)
       .on(
         'postgres_changes',
@@ -187,12 +187,15 @@ export const useDataStore = create<DataState>((set, get) => ({
         }
       )
       .subscribe();
+
+    set({ realtimeChannel: channel });
   },
 
   unsubscribeRealtime: () => {
-    if (realtimeChannel) {
-      supabase.removeChannel(realtimeChannel);
-      realtimeChannel = null;
+    const { realtimeChannel: channel } = get();
+    if (channel) {
+      supabase.removeChannel(channel);
+      set({ realtimeChannel: null });
     }
   },
 
@@ -219,6 +222,7 @@ export const useDataStore = create<DataState>((set, get) => ({
 
     await supabase
       .from('products')
+      // @ts-expect-error — Supabase type inference mismatch
       .update(dbUpdates)
       .eq('id', (product as any)._dbId);
   },
@@ -235,9 +239,10 @@ export const useDataStore = create<DataState>((set, get) => ({
       return;
     }
 
+    // @ts-expect-error — Supabase type inference mismatch
     await supabase.from('products').insert({
       merchant_id: merchantId,
-      sku: product.id || `P-${Date.now()}`,
+      sku: (product as any).id || `P-${Date.now()}`,
       name: product.name,
       category: product.category,
       price: product.price,
@@ -266,6 +271,7 @@ export const useDataStore = create<DataState>((set, get) => ({
 
     await supabase
       .from('orders')
+      // @ts-expect-error — Supabase type inference mismatch
       .update(dbUpdates)
       .eq('id', (order as any)._dbId);
   },
@@ -283,6 +289,7 @@ export const useDataStore = create<DataState>((set, get) => ({
 
     await supabase
       .from('carts')
+      // @ts-expect-error — Supabase type inference mismatch
       .update({ status })
       .eq('id', cartId);
   },
@@ -300,6 +307,7 @@ export const useDataStore = create<DataState>((set, get) => ({
       return;
     }
 
+    // @ts-expect-error — Supabase type inference mismatch
     await supabase.from('agent_activity').insert({
       merchant_id: merchantId,
       agent_type: agentType,

@@ -23,11 +23,9 @@ const Orders: React.FC = () => {
     setLoading(true);
     setActionContent('');
 
-    setTimeout(async () => {
-      const insight = await analyzeOrder(order);
-      setAiInsight(insight);
-      setLoading(false);
-    }, 600);
+    const insight = await analyzeOrder(order);
+    setAiInsight(insight);
+    setLoading(false);
   };
 
   const handleExecuteAction = async () => {

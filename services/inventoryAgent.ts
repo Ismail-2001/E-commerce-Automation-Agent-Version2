@@ -1,4 +1,5 @@
 import { Product } from '../types';
+import { sanitizeForPrompt } from '../lib/promptSafety';
 
 const apiKey = process.env.API_KEY || '';
 
@@ -56,27 +57,30 @@ export const analyzeInventoryItem = async (product: Product): Promise<InventoryI
 export const generateInventoryActionContent = async (product: Product, insightType: string): Promise<string> => {
     if (!apiKey) return "AI API Key missing. Please check configuration.";
 
+    // Sanitize user-controlled inputs
+    const safeProductName = sanitizeForPrompt(product.name);
+
     let prompt = "";
 
     if (insightType === 'restock') {
         prompt = `
         Write a professional vendor reorder email for:
-        Product: ${product.name}
+        Product: ${safeProductName}
         Current Stock: ${product.stock}
-        
+
         Request a restock quote for 50 units. Ask for expedited shipping options.
         Keep it brief and business-professional.
         `;
     } else if (insightType === 'dead_stock') {
         prompt = `
         Write a catchy social media post (Instagram/Twitter) for a FLASH SALE on:
-        Product: ${product.name}
-        
+        Product: ${safeProductName}
+
         The goal is to clear excess inventory. Offer a 20% discount for 24 hours only.
         Use emojis and create urgency.
         `;
     } else {
-        prompt = `Write a short 2-sentence creative product description for ${product.name} that highlights its key features.`;
+        prompt = `Write a short 2-sentence creative product description for ${safeProductName} that highlights its key features.`;
     }
 
     try {

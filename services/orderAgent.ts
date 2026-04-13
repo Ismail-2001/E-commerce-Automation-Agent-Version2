@@ -1,4 +1,5 @@
 import { Order } from '../types';
+import { sanitizeForPrompt } from '../lib/promptSafety';
 
 const apiKey = process.env.API_KEY || '';
 
@@ -55,23 +56,26 @@ export const analyzeOrder = async (order: Order): Promise<OrderInsight> => {
 export const generateOrderActionContent = async (order: Order, insightType: string): Promise<string> => {
     if (!apiKey) return "AI API Key missing.";
 
+    // Sanitize user-controlled inputs
+    const safeCustomerName = sanitizeForPrompt(order.customerName);
+
     let prompt = "";
 
     if (insightType === 'vip') {
         prompt = `
-        Write a personalized, premium "Thank You" email for a VIP customer named ${order.customerName}.
+        Write a personalized, premium "Thank You" email for a VIP customer named ${safeCustomerName}.
         They just spent $${order.total}.
         Offer them early access to our next collection as a token of appreciation.
         `;
     } else if (insightType === 'return_risk') {
         prompt = `
-        Write a polite, empathetic email to ${order.customerName} regarding their returned order ${order.id}.
+        Write a polite, empathetic email to ${safeCustomerName} regarding their returned order ${order.id}.
         Ask for feedback on why they returned the item so we can improve.
         Keep it professional and understanding.
         `;
     } else if (insightType === 'pending') {
         prompt = `
-        Write a status update email to ${order.customerName} for Order ${order.id}.
+        Write a status update email to ${safeCustomerName} for Order ${order.id}.
         Inform them that their order is being packed and will ship within 24 hours.
         Provide a placeholder tracking link.
         `;

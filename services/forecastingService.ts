@@ -75,7 +75,9 @@ export function forecastProduct(
     : Infinity;
 
   // Recommended reorder date (stockout - lead time, but at least today)
-  const reorderDays = Math.max(0, daysUntilStockout - leadTimeDays);
+  const reorderDays = daysUntilStockout === Infinity
+    ? 365 // No reorder needed — set far future date
+    : Math.max(0, daysUntilStockout - leadTimeDays);
   const reorderDate = new Date();
   reorderDate.setDate(reorderDate.getDate() + reorderDays);
 

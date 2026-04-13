@@ -8,6 +8,7 @@ import { useDataStore } from '../stores/dataStore';
 import { analyzePricing, PricingRecommendation } from '../services/pricingAgent';
 import { analyzeSupplierNeeds, generateNegotiationEmail, SupplierRecommendation } from '../services/supplierAgent';
 import { generateCampaignBriefs, generateAICopy, MarketingCampaign } from '../services/marketingAgent';
+import type { Product, SalesData } from '../types';
 
 type ActiveAgent = 'pricing' | 'supplier' | 'marketing' | 'overview';
 
@@ -76,7 +77,7 @@ const AgentHub: React.FC = () => {
 // ============================================
 // OVERVIEW — Cross-Agent Collaboration Summary
 // ============================================
-const AgentOverview: React.FC<{ products: any[]; salesData: any[] }> = ({ products, salesData }) => {
+const AgentOverview: React.FC<{ products: Product[]; salesData: SalesData[] }> = ({ products, salesData }) => {
   const pricing = useMemo(() => analyzePricing(products, salesData), [products, salesData]);
   const supplier = useMemo(() => analyzeSupplierNeeds(products), [products]);
   const marketing = useMemo(() => generateCampaignBriefs(products), [products]);
@@ -129,7 +130,7 @@ const AgentOverview: React.FC<{ products: any[]; salesData: any[] }> = ({ produc
   );
 };
 
-const SummaryCard: React.FC<{ icon: any; color: string; title: string; metric: string; detail: string; revenue: string }> = ({
+const SummaryCard: React.FC<{ icon: React.ElementType; color: string; title: string; metric: string; detail: string; revenue: string }> = ({
   icon: Icon, color, title, metric, detail, revenue
 }) => (
   <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
@@ -148,7 +149,7 @@ const SummaryCard: React.FC<{ icon: any; color: string; title: string; metric: s
 // ============================================
 // PRICING AGENT PANEL
 // ============================================
-const PricingPanel: React.FC<{ products: any[]; salesData: any[] }> = ({ products, salesData }) => {
+const PricingPanel: React.FC<{ products: Product[]; salesData: SalesData[] }> = ({ products, salesData }) => {
   const recommendations = useMemo(() => analyzePricing(products, salesData), [products, salesData]);
 
   return (
@@ -205,7 +206,7 @@ const PricingPanel: React.FC<{ products: any[]; salesData: any[] }> = ({ product
 // ============================================
 // SUPPLIER AGENT PANEL
 // ============================================
-const SupplierPanel: React.FC<{ products: any[] }> = ({ products }) => {
+const SupplierPanel: React.FC<{ products: Product[] }> = ({ products }) => {
   const recommendations = useMemo(() => analyzeSupplierNeeds(products), [products]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [emailContent, setEmailContent] = useState<string>('');
@@ -298,7 +299,7 @@ const SupplierPanel: React.FC<{ products: any[] }> = ({ products }) => {
 // ============================================
 // MARKETING AGENT PANEL
 // ============================================
-const MarketingPanel: React.FC<{ products: any[] }> = ({ products }) => {
+const MarketingPanel: React.FC<{ products: Product[] }> = ({ products }) => {
   const campaigns = useMemo(() => generateCampaignBriefs(products), [products]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [aiCopy, setAiCopy] = useState<string>('');

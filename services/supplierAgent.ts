@@ -1,4 +1,5 @@
 import { Product } from '../types';
+import { sanitizeForPrompt } from '../lib/promptSafety';
 
 export interface SupplierRecommendation {
   productId: string;
@@ -83,6 +84,8 @@ export async function generateNegotiationEmail(recommendation: SupplierRecommend
     return `Subject: Reorder Request — ${recommendation.productName}\n\nDear Supplier,\n\nWe would like to place an order for ${recommendation.suggestedQuantity} units of ${recommendation.productName}.\n\nPlease provide your best pricing and estimated delivery timeline.\n\nBest regards,\nAutoAgent Procurement`;
   }
 
+  const safeProductName = sanitizeForPrompt(recommendation.productName);
+
   try {
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -97,7 +100,7 @@ export async function generateNegotiationEmail(recommendation: SupplierRecommend
           {
             role: 'user',
             content: `Write a professional vendor email for:
-Product: ${recommendation.productName}
+Product: ${safeProductName}
 Action: ${recommendation.action}
 Quantity: ${recommendation.suggestedQuantity} units
 Negotiation Strategy: ${recommendation.negotiationTip}

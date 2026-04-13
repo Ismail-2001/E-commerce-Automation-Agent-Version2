@@ -1,4 +1,5 @@
 import { Product } from '../types';
+import { sanitizeForPrompt } from '../lib/promptSafety';
 
 export interface MarketingCampaign {
   productId: string;
@@ -83,6 +84,9 @@ export async function generateAICopy(product: Product, platform: string): Promis
     return `Check out ${product.name} — the ${product.category} essential you've been waiting for! Now at $${product.price}. Shop now!`;
   }
 
+  const safeProductName = sanitizeForPrompt(product.name);
+  const safeCategory = sanitizeForPrompt(product.category);
+
   try {
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -97,8 +101,8 @@ export async function generateAICopy(product: Product, platform: string): Promis
           {
             role: 'user',
             content: `Write a compelling ${platform} ad for:
-Product: ${product.name}
-Category: ${product.category}
+Product: ${safeProductName}
+Category: ${safeCategory}
 Price: $${product.price}
 Stock: ${product.stock} units
 

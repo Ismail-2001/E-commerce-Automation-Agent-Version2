@@ -6,7 +6,14 @@
       "Bash(git remote *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(npm audit)",
+      "Bash(dir *)",
+      "Bash(git rm *)",
+      "Bash(npm install *)",
+      "Bash(mkdir *)",
+      "Bash(npm run *)",
+      "Bash(npx *)"
     ]
   },
   "$version": 3

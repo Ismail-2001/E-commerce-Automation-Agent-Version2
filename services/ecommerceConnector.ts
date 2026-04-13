@@ -51,68 +51,100 @@ async function fetchWooCommerce(config: ConnectorConfig, endpoint: string): Prom
 
 /**
  * Imports products from a connected storefront.
+ * Paginates through all results (50 per page) to handle large stores.
  */
 export async function importProducts(config: ConnectorConfig): Promise<Product[]> {
-  if (config.platform === 'shopify') {
-    const data = await fetchShopify(config, 'products.json?limit=50');
-    return (data.products || []).map((p: any) => ({
-      id: `SHOP-${p.id}`,
-      name: p.title,
-      category: p.product_type || 'General',
-      price: parseFloat(p.variants?.[0]?.price || '0'),
-      stock: p.variants?.reduce((sum: number, v: any) => sum + (v.inventory_quantity || 0), 0) || 0,
-      status: getStockStatus(p.variants?.reduce((sum: number, v: any) => sum + (v.inventory_quantity || 0), 0) || 0),
-      image: p.image?.src || p.images?.[0]?.src || '',
-      lastSold: p.updated_at?.split('T')[0],
-    }));
+  const allProducts: Product[] = [];
+  let page = 1;
+  const perPage = 50;
+
+  while (true) {
+    let batch: Product[] = [];
+
+    if (config.platform === 'shopify') {
+      const data = await fetchShopify(config, `products.json?limit=${perPage}&page=${page}`);
+      const products = data.products || [];
+      if (products.length === 0) break;
+      batch = products.map((p: any) => ({
+        id: `SHOP-${p.id}`,
+        name: p.title,
+        category: p.product_type || 'General',
+        price: parseFloat(p.variants?.[0]?.price || '0'),
+        stock: p.variants?.reduce((sum: number, v: any) => sum + (v.inventory_quantity || 0), 0) || 0,
+        status: getStockStatus(p.variants?.reduce((sum: number, v: any) => sum + (v.inventory_quantity || 0), 0) || 0),
+        image: p.image?.src || p.images?.[0]?.src || '',
+        lastSold: p.updated_at?.split('T')[0],
+      }));
+    } else if (config.platform === 'woocommerce') {
+      const data = await fetchWooCommerce(config, `products?per_page=${perPage}&page=${page}`);
+      if (!data || data.length === 0) break;
+      batch = data.map((p: any) => ({
+        id: `WOO-${p.id}`,
+        name: p.name,
+        category: p.categories?.[0]?.name || 'General',
+        price: parseFloat(p.price || '0'),
+        stock: p.stock_quantity || 0,
+        status: getStockStatus(p.stock_quantity || 0),
+        image: p.images?.[0]?.src || '',
+        lastSold: p.date_modified?.split('T')[0],
+      }));
+    } else {
+      break;
+    }
+
+    allProducts.push(...batch);
+    if (batch.length < perPage) break; // Last page
+    page++;
   }
 
-  if (config.platform === 'woocommerce') {
-    const data = await fetchWooCommerce(config, 'products?per_page=50');
-    return (data || []).map((p: any) => ({
-      id: `WOO-${p.id}`,
-      name: p.name,
-      category: p.categories?.[0]?.name || 'General',
-      price: parseFloat(p.price || '0'),
-      stock: p.stock_quantity || 0,
-      status: getStockStatus(p.stock_quantity || 0),
-      image: p.images?.[0]?.src || '',
-      lastSold: p.date_modified?.split('T')[0],
-    }));
-  }
-
-  return [];
+  return allProducts;
 }
 
 /**
  * Imports orders from a connected storefront.
+ * Paginates through all results (50 per page) to handle large stores.
  */
 export async function importOrders(config: ConnectorConfig): Promise<Order[]> {
-  if (config.platform === 'shopify') {
-    const data = await fetchShopify(config, 'orders.json?limit=50&status=any');
-    return (data.orders || []).map((o: any) => ({
-      id: `SHOP-${o.order_number || o.id}`,
-      customerName: `${o.customer?.first_name || ''} ${o.customer?.last_name || ''}`.trim() || 'Guest',
-      total: parseFloat(o.total_price || '0'),
-      status: mapShopifyStatus(o.fulfillment_status, o.financial_status),
-      date: o.created_at?.split('T')[0] || '',
-      items: o.line_items?.length || 0,
-    }));
+  const allOrders: Order[] = [];
+  let page = 1;
+  const perPage = 50;
+
+  while (true) {
+    let batch: Order[] = [];
+
+    if (config.platform === 'shopify') {
+      const data = await fetchShopify(config, `orders.json?limit=${perPage}&page=${page}&status=any`);
+      const orders = data.orders || [];
+      if (orders.length === 0) break;
+      batch = orders.map((o: any) => ({
+        id: `SHOP-${o.order_number || o.id}`,
+        customerName: `${o.customer?.first_name || ''} ${o.customer?.last_name || ''}`.trim() || 'Guest',
+        total: parseFloat(o.total_price || '0'),
+        status: mapShopifyStatus(o.fulfillment_status, o.financial_status),
+        date: o.created_at?.split('T')[0] || '',
+        items: o.line_items?.length || 0,
+      }));
+    } else if (config.platform === 'woocommerce') {
+      const data = await fetchWooCommerce(config, `orders?per_page=${perPage}&page=${page}`);
+      if (!data || data.length === 0) break;
+      batch = data.map((o: any) => ({
+        id: `WOO-${o.id}`,
+        customerName: `${o.billing?.first_name || ''} ${o.billing?.last_name || ''}`.trim() || 'Guest',
+        total: parseFloat(o.total || '0'),
+        status: mapWooStatus(o.status),
+        date: o.date_created?.split('T')[0] || '',
+        items: o.line_items?.length || 0,
+      }));
+    } else {
+      break;
+    }
+
+    allOrders.push(...batch);
+    if (batch.length < perPage) break;
+    page++;
   }
 
-  if (config.platform === 'woocommerce') {
-    const data = await fetchWooCommerce(config, 'orders?per_page=50');
-    return (data || []).map((o: any) => ({
-      id: `WOO-${o.id}`,
-      customerName: `${o.billing?.first_name || ''} ${o.billing?.last_name || ''}`.trim() || 'Guest',
-      total: parseFloat(o.total || '0'),
-      status: mapWooStatus(o.status),
-      date: o.date_created?.split('T')[0] || '',
-      items: o.line_items?.length || 0,
-    }));
-  }
-
-  return [];
+  return allOrders;
 }
 
 /**

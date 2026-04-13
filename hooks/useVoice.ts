@@ -32,8 +32,8 @@ export function useVoice(options: UseVoiceOptions = {}): UseVoiceReturn {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
 
-  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-  const isSupported = !!SpeechRecognition && !!window.speechSynthesis;
+  const SpeechRecognitionCtor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  const isSupported = !!SpeechRecognitionCtor && !!window.speechSynthesis;
 
   useEffect(() => {
     synthRef.current = window.speechSynthesis;
@@ -44,9 +44,9 @@ export function useVoice(options: UseVoiceOptions = {}): UseVoiceReturn {
   }, []);
 
   const startListening = useCallback(() => {
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognitionCtor) return;
 
-    const recognition = new SpeechRecognition();
+    const recognition = new SpeechRecognitionCtor() as SpeechRecognition;
     recognition.lang = language;
     recognition.interimResults = true;
     recognition.continuous = continuous;
@@ -89,7 +89,7 @@ export function useVoice(options: UseVoiceOptions = {}): UseVoiceReturn {
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [SpeechRecognition, language, continuous, onResult, onEnd]);
+  }, [SpeechRecognitionCtor, language, continuous, onResult, onEnd]);
 
   const stopListening = useCallback(() => {
     recognitionRef.current?.stop();

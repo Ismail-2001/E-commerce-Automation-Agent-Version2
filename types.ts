@@ -18,6 +18,23 @@ export interface Order {
   items: number;
 }
 
+export interface ProductWidgetData {
+  id: string;
+  name: string;
+  price: number;
+  stock: number;
+  image: string;
+}
+
+export interface OrderWidgetData {
+  id: string;
+  customerName: string;
+  total: number;
+  status: string;
+}
+
+export type WidgetData = ProductWidgetData | OrderWidgetData | null;
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'model' | 'system';
@@ -25,7 +42,7 @@ export interface ChatMessage {
   timestamp: Date;
   isError?: boolean;
   widget?: 'product_card' | 'order_card' | 'none';
-  widgetData?: any;
+  widgetData?: WidgetData;
 }
 
 export type ViewState = 'dashboard' | 'inventory' | 'orders' | 'agent' | 'agent-recovery' | 'image-analysis' | 'forecasting' | 'connector' | 'agents' | 'settings';
