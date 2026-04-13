@@ -32,7 +32,7 @@ export function useVoice(options: UseVoiceOptions = {}): UseVoiceReturn {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
 
-  const SpeechRecognitionCtor = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
   const isSupported = !!SpeechRecognitionCtor && !!window.speechSynthesis;
 
   useEffect(() => {

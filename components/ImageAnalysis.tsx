@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, Camera, Sparkles, Loader2, Image, Tag, Search, FileText, RotateCcw, Copy, Check } from 'lucide-react';
-import { analyzeProductImage } from '../services/geminiService';
+import { analyzeProductImage } from '../services/llmService';
 
 interface AnalysisResult {
   description: string;

@@ -306,7 +306,7 @@ const MarketingPanel: React.FC<{ products: Product[] }> = ({ products }) => {
   const [generating, setGenerating] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState('Instagram');
 
-  const handleGenerateCopy = async (product: any, platform: string) => {
+  const handleGenerateCopy = async (product: Product, platform: string) => {
     setGenerating(true);
     setAiCopy('');
     const copy = await generateAICopy(product, platform);

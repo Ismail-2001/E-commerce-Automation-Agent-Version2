@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Sparkles, TrendingUp, Package, MessageSquare, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
-import { ChatMessage } from '../types';
-import { getAgentResponse } from '../services/aiService';
+import { ChatMessage, WidgetData } from '../types';
+import { getAgentResponse } from '../services/llmService';
 import { useDataStore } from '../stores/dataStore';
 import { useVoice } from '../hooks/useVoice';
 
@@ -48,7 +48,7 @@ const ChatAgent: React.FC = () => {
     try {
       const rawResponse = await getAgentResponse(text, products, orders);
 
-      let parsedResponse: { text: string; ui_widget?: 'product_card' | 'order_card' | 'none'; widget_data?: any } = {
+      let parsedResponse: { text: string; ui_widget?: 'product_card' | 'order_card' | 'none'; widget_data?: WidgetData } = {
         text: "",
         ui_widget: "none"
       };

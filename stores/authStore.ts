@@ -85,8 +85,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await supabase.rpc('seed_demo_data', { p_merchant_id: merchant.id });
 
       set({ user: data.user, merchant, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err), loading: false });
     }
   },
 
@@ -98,8 +98,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       const merchant = await fetchMerchant(data.user.id);
       set({ session: data.session, user: data.user, merchant, loading: false });
-    } catch (err: any) {
-      set({ error: err.message, loading: false });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : String(err), loading: false });
     }
   },
 

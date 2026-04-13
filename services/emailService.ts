@@ -25,8 +25,8 @@ export const sendEmail = async ({ to, customerName, subject, body }: SendEmailPa
     if (error) throw error;
 
     return { success: true, messageId: data?.messageId };
-  } catch (err: any) {
-    console.warn('Edge function unavailable, simulating email send:', err.message);
+  } catch (err) {
+    console.warn('Edge function unavailable, simulating email send:', err instanceof Error ? err.message : String(err));
 
     // Graceful fallback: simulate the send so the UI still works
     await new Promise(resolve => setTimeout(resolve, 1500));

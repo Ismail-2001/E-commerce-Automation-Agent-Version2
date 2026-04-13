@@ -1,14 +1,48 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
-import { Product, Order, Cart, CartItem, SalesData } from '../types';
+import { Product, Order, Cart, SalesData } from '../types';
 import { MOCK_PRODUCTS, MOCK_ORDERS, MOCK_CARTS, SALES_DATA } from '../constants';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+
+/** Extended product with DB primary key for mutations */
+interface ProductWithDbId extends Product {
+  _dbId?: string;
+}
+
+/** Extended order with DB primary key for mutations */
+interface OrderWithDbId extends Order {
+  _dbId?: string;
+}
 
 interface AgentActivity {
   id: string;
   agent_type: string;
   message: string;
   created_at: string;
+}
+
+/** Shape of a DB cart_items join row */
+interface DbCartItem {
+  id: string;
+  product_id: string;
+  product_name: string;
+  price: number | string;
+  quantity: number;
+}
+
+/** Fields that can be updated on a product in the DB */
+interface ProductDbUpdates {
+  name?: string;
+  price?: number;
+  stock?: number;
+  category?: string;
+  image?: string;
+}
+
+/** Fields that can be updated on an order in the DB */
+interface OrderDbUpdates {
+  status?: string;
+  customer_name?: string;
 }
 
 interface DataState {
@@ -123,7 +157,7 @@ export const useDataStore = create<DataState>((set, get) => ({
         id: c.id,
         customerName: c.customer_name,
         customerEmail: c.customer_email,
-        items: (c.cart_items || []).map((ci: any) => ({
+        items: ((c.cart_items || []) as DbCartItem[]).map((ci) => ({
           id: ci.id,
           productId: ci.product_id || '',
           productName: ci.product_name,
@@ -210,10 +244,10 @@ export const useDataStore = create<DataState>((set, get) => ({
       return;
     }
 
-    const product = state.products.find(p => p.id === sku);
-    if (!product) return;
+    const product = state.products.find(p => p.id === sku) as ProductWithDbId | undefined;
+    if (!product || !product._dbId) return;
 
-    const dbUpdates: Record<string, any> = {};
+    const dbUpdates: ProductDbUpdates = {};
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.price !== undefined) dbUpdates.price = updates.price;
     if (updates.stock !== undefined) dbUpdates.stock = updates.stock;
@@ -224,7 +258,7 @@ export const useDataStore = create<DataState>((set, get) => ({
       .from('products')
       // @ts-expect-error — Supabase type inference mismatch
       .update(dbUpdates)
-      .eq('id', (product as any)._dbId);
+      .eq('id', product._dbId);
   },
 
   addProduct: async (merchantId, product) => {
@@ -242,7 +276,7 @@ export const useDataStore = create<DataState>((set, get) => ({
     // @ts-expect-error — Supabase type inference mismatch
     await supabase.from('products').insert({
       merchant_id: merchantId,
-      sku: (product as any).id || `P-${Date.now()}`,
+      sku: `P-${Date.now()}`,
       name: product.name,
       category: product.category,
       price: product.price,
@@ -262,10 +296,10 @@ export const useDataStore = create<DataState>((set, get) => ({
       return;
     }
 
-    const order = state.orders.find(o => o.id === orderNumber);
-    if (!order) return;
+    const order = state.orders.find(o => o.id === orderNumber) as OrderWithDbId | undefined;
+    if (!order || !order._dbId) return;
 
-    const dbUpdates: Record<string, any> = {};
+    const dbUpdates: OrderDbUpdates = {};
     if (updates.status !== undefined) dbUpdates.status = updates.status;
     if (updates.customerName !== undefined) dbUpdates.customer_name = updates.customerName;
 
@@ -273,7 +307,7 @@ export const useDataStore = create<DataState>((set, get) => ({
       .from('orders')
       // @ts-expect-error — Supabase type inference mismatch
       .update(dbUpdates)
-      .eq('id', (order as any)._dbId);
+      .eq('id', order._dbId);
   },
 
   updateCartStatus: async (cartId, status) => {

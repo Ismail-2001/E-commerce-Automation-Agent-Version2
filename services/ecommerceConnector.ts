@@ -16,11 +16,82 @@ export interface SyncResult {
   errors: string[];
 }
 
+// ─── External API response shapes ───────────────────────────────────
+
+interface ShopifyVariant {
+  price: string;
+  inventory_quantity: number;
+}
+
+interface ShopifyImage {
+  src: string;
+}
+
+interface ShopifyProduct {
+  id: number;
+  title: string;
+  product_type: string;
+  variants: ShopifyVariant[];
+  image: ShopifyImage | null;
+  images: ShopifyImage[];
+  updated_at: string;
+}
+
+interface ShopifyCustomer {
+  first_name: string;
+  last_name: string;
+}
+
+interface ShopifyLineItem {
+  id: number;
+}
+
+interface ShopifyOrder {
+  id: number;
+  order_number: number;
+  customer: ShopifyCustomer | null;
+  total_price: string;
+  fulfillment_status: string | null;
+  financial_status: string;
+  created_at: string;
+  line_items: ShopifyLineItem[];
+}
+
+interface WooProduct {
+  id: number;
+  name: string;
+  categories: { name: string }[];
+  price: string;
+  stock_quantity: number | null;
+  images: { src: string }[];
+  date_modified: string;
+}
+
+interface WooBilling {
+  first_name: string;
+  last_name: string;
+}
+
+interface WooLineItem {
+  id: number;
+}
+
+interface WooOrder {
+  id: number;
+  billing: WooBilling;
+  total: string;
+  status: string;
+  date_created: string;
+  line_items: WooLineItem[];
+}
+
+// ─── API clients ────────────────────────────────────────────────────
+
 /**
  * Shopify Storefront API connector.
  * Uses the Admin REST API (requires private app credentials).
  */
-async function fetchShopify(config: ConnectorConfig, endpoint: string): Promise<any> {
+async function fetchShopify<T = unknown>(config: ConnectorConfig, endpoint: string): Promise<T> {
   const url = `${config.storeUrl}/admin/api/2024-01/${endpoint}`;
   const response = await fetch(url, {
     headers: {
@@ -29,14 +100,14 @@ async function fetchShopify(config: ConnectorConfig, endpoint: string): Promise<
     },
   });
   if (!response.ok) throw new Error(`Shopify API error: ${response.status} ${response.statusText}`);
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
 /**
  * WooCommerce REST API connector.
  * Uses Basic Auth with consumer key/secret.
  */
-async function fetchWooCommerce(config: ConnectorConfig, endpoint: string): Promise<any> {
+async function fetchWooCommerce<T = unknown>(config: ConnectorConfig, endpoint: string): Promise<T> {
   const url = `${config.storeUrl}/wp-json/wc/v3/${endpoint}`;
   const auth = btoa(`${config.apiKey}:${config.apiSecret || ''}`);
   const response = await fetch(url, {
@@ -46,8 +117,10 @@ async function fetchWooCommerce(config: ConnectorConfig, endpoint: string): Prom
     },
   });
   if (!response.ok) throw new Error(`WooCommerce API error: ${response.status} ${response.statusText}`);
-  return response.json();
+  return response.json() as Promise<T>;
 }
+
+// ─── Import functions ───────────────────────────────────────────────
 
 /**
  * Imports products from a connected storefront.
@@ -62,23 +135,23 @@ export async function importProducts(config: ConnectorConfig): Promise<Product[]
     let batch: Product[] = [];
 
     if (config.platform === 'shopify') {
-      const data = await fetchShopify(config, `products.json?limit=${perPage}&page=${page}`);
+      const data = await fetchShopify<{ products: ShopifyProduct[] }>(config, `products.json?limit=${perPage}&page=${page}`);
       const products = data.products || [];
       if (products.length === 0) break;
-      batch = products.map((p: any) => ({
+      batch = products.map((p) => ({
         id: `SHOP-${p.id}`,
         name: p.title,
         category: p.product_type || 'General',
         price: parseFloat(p.variants?.[0]?.price || '0'),
-        stock: p.variants?.reduce((sum: number, v: any) => sum + (v.inventory_quantity || 0), 0) || 0,
-        status: getStockStatus(p.variants?.reduce((sum: number, v: any) => sum + (v.inventory_quantity || 0), 0) || 0),
+        stock: p.variants?.reduce((sum, v) => sum + (v.inventory_quantity || 0), 0) || 0,
+        status: getStockStatus(p.variants?.reduce((sum, v) => sum + (v.inventory_quantity || 0), 0) || 0),
         image: p.image?.src || p.images?.[0]?.src || '',
         lastSold: p.updated_at?.split('T')[0],
       }));
     } else if (config.platform === 'woocommerce') {
-      const data = await fetchWooCommerce(config, `products?per_page=${perPage}&page=${page}`);
+      const data = await fetchWooCommerce<WooProduct[]>(config, `products?per_page=${perPage}&page=${page}`);
       if (!data || data.length === 0) break;
-      batch = data.map((p: any) => ({
+      batch = data.map((p) => ({
         id: `WOO-${p.id}`,
         name: p.name,
         category: p.categories?.[0]?.name || 'General',
@@ -113,10 +186,10 @@ export async function importOrders(config: ConnectorConfig): Promise<Order[]> {
     let batch: Order[] = [];
 
     if (config.platform === 'shopify') {
-      const data = await fetchShopify(config, `orders.json?limit=${perPage}&page=${page}&status=any`);
+      const data = await fetchShopify<{ orders: ShopifyOrder[] }>(config, `orders.json?limit=${perPage}&page=${page}&status=any`);
       const orders = data.orders || [];
       if (orders.length === 0) break;
-      batch = orders.map((o: any) => ({
+      batch = orders.map((o) => ({
         id: `SHOP-${o.order_number || o.id}`,
         customerName: `${o.customer?.first_name || ''} ${o.customer?.last_name || ''}`.trim() || 'Guest',
         total: parseFloat(o.total_price || '0'),
@@ -125,9 +198,9 @@ export async function importOrders(config: ConnectorConfig): Promise<Order[]> {
         items: o.line_items?.length || 0,
       }));
     } else if (config.platform === 'woocommerce') {
-      const data = await fetchWooCommerce(config, `orders?per_page=${perPage}&page=${page}`);
+      const data = await fetchWooCommerce<WooOrder[]>(config, `orders?per_page=${perPage}&page=${page}`);
       if (!data || data.length === 0) break;
-      batch = data.map((o: any) => ({
+      batch = data.map((o) => ({
         id: `WOO-${o.id}`,
         customerName: `${o.billing?.first_name || ''} ${o.billing?.last_name || ''}`.trim() || 'Guest',
         total: parseFloat(o.total || '0'),
@@ -157,14 +230,14 @@ export async function syncStorefront(config: ConnectorConfig): Promise<SyncResul
 
   try {
     products = await importProducts(config);
-  } catch (e: any) {
-    errors.push(`Products: ${e.message}`);
+  } catch (e) {
+    errors.push(`Products: ${e instanceof Error ? e.message : String(e)}`);
   }
 
   try {
     orders = await importOrders(config);
-  } catch (e: any) {
-    errors.push(`Orders: ${e.message}`);
+  } catch (e) {
+    errors.push(`Orders: ${e instanceof Error ? e.message : String(e)}`);
   }
 
   return {
@@ -181,16 +254,16 @@ export async function syncStorefront(config: ConnectorConfig): Promise<SyncResul
 export async function testConnection(config: ConnectorConfig): Promise<{ success: boolean; storeName?: string; error?: string }> {
   try {
     if (config.platform === 'shopify') {
-      const data = await fetchShopify(config, 'shop.json');
+      const data = await fetchShopify<{ shop: { name: string } }>(config, 'shop.json');
       return { success: true, storeName: data.shop?.name };
     }
     if (config.platform === 'woocommerce') {
-      const data = await fetchWooCommerce(config, 'system_status');
+      const data = await fetchWooCommerce<{ environment: { site_url: string } }>(config, 'system_status');
       return { success: true, storeName: data.environment?.site_url || config.storeUrl };
     }
     return { success: false, error: 'Unknown platform' };
-  } catch (e: any) {
-    return { success: false, error: e.message };
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : String(e) };
   }
 }
 
