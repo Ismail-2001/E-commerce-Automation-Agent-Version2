@@ -21,31 +21,52 @@ export const supabase: SupabaseClient<Database> = supabaseConfigured
         },
       },
     })
-  : (new Proxy({} as any, {
+  : (new Proxy({} as unknown as SupabaseClient<Database>, {
       get(_target, prop) {
         // Return no-op stubs so code that references supabase.auth / supabase.from etc. doesn't crash
         if (prop === 'auth') {
           return {
             getSession: async () => ({ data: { session: null }, error: null }),
-            signUp: async () => ({ data: { user: null }, error: { message: 'Supabase not configured' } }),
-            signInWithPassword: async () => ({ data: {}, error: { message: 'Supabase not configured' } }),
+            signUp: async () => ({
+              data: { user: null },
+              error: { message: 'Supabase not configured' },
+            }),
+            signInWithPassword: async () => ({
+              data: {},
+              error: { message: 'Supabase not configured' },
+            }),
             signOut: async () => {},
             onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
           };
         }
         if (prop === 'from') {
           return () => ({
-            select: () => ({ eq: () => ({ single: async () => ({ data: null, error: null }), order: () => ({ data: [], error: null }) }), order: () => ({ data: [], error: null }), data: [], error: null }),
+            select: () => ({
+              eq: () => ({
+                single: async () => ({ data: null, error: null }),
+                order: () => ({ data: [], error: null }),
+              }),
+              order: () => ({ data: [], error: null }),
+              data: [],
+              error: null,
+            }),
             insert: async () => ({ data: null, error: null }),
             update: () => ({ eq: async () => ({ data: null, error: null }) }),
             delete: () => ({ eq: async () => ({ data: null, error: null }) }),
           });
         }
         if (prop === 'functions') {
-          return { invoke: async () => ({ data: null, error: { message: 'Supabase not configured' } }) };
+          return {
+            invoke: async () => ({ data: null, error: { message: 'Supabase not configured' } }),
+          };
         }
         if (prop === 'channel') {
-          return () => ({ on: function() { return this; }, subscribe: () => {} });
+          return () => ({
+            on: function () {
+              return this;
+            },
+            subscribe: () => {},
+          });
         }
         if (prop === 'removeChannel') {
           return () => {};

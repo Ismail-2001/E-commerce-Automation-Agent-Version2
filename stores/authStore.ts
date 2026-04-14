@@ -22,7 +22,7 @@ interface AuthState {
   clearError: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set, _get) => ({
   session: null,
   user: null,
   merchant: null,
@@ -39,7 +39,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (session?.user) {
         const merchant = await fetchMerchant(session.user.id);
@@ -70,7 +72,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!data.user) throw new Error('Sign-up failed — check your email for confirmation.');
 
       // Create merchant workspace
-      const slug = merchantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const slug = merchantName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
       const { data: merchant, error: merchantError } = await supabase
         .from('merchants')
         // @ts-expect-error — Supabase type inference mismatch with generated Database types

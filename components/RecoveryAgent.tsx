@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Send, User, Calendar, DollarSign, Loader2, CheckCircle2, Mail } from 'lucide-react';
+import { Send, User, Calendar, DollarSign, Loader2, CheckCircle2, Mail } from 'lucide-react';
 import { Cart } from '../types';
 import { generateRecoveryEmail } from '../services/recoveryAgent';
 import { sendEmail, extractSubject } from '../services/emailService';
@@ -59,7 +59,7 @@ const RecoveryAgent: React.FC = () => {
     setIsSending(false);
   };
 
-  const abandonedCarts = carts.filter(c => c.status === 'abandoned');
+  const abandonedCarts = carts.filter((c) => c.status === 'abandoned');
 
   return (
     <div className="space-y-6">
@@ -85,8 +85,11 @@ const RecoveryAgent: React.FC = () => {
               <p className="text-gray-500">No abandoned carts currently detected.</p>
             </div>
           ) : (
-            abandonedCarts.map(cart => (
-              <div key={cart.id} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-4">
+            abandonedCarts.map((cart) => (
+              <div
+                key={cart.id}
+                className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row md:items-center justify-between gap-4"
+              >
                 <div className="flex gap-4">
                   <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <User className="w-6 h-6 text-gray-500" />
@@ -94,15 +97,22 @@ const RecoveryAgent: React.FC = () => {
                   <div>
                     <h3 className="font-semibold text-gray-900">{cart.customerName}</h3>
                     <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
-                      <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {cart.customerEmail}</span>
-                      <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(cart.lastActive).toLocaleTimeString()}</span>
+                      <span className="flex items-center gap-1">
+                        <Mail className="w-3 h-3" /> {cart.customerEmail}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />{' '}
+                        {new Date(cart.lastActive).toLocaleTimeString()}
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <div className="text-lg font-bold text-gray-900">${cart.totalValue.toFixed(2)}</div>
+                    <div className="text-lg font-bold text-gray-900">
+                      ${cart.totalValue.toFixed(2)}
+                    </div>
                     <div className="text-xs text-gray-500">{cart.items.length} items</div>
                     {cart.totalValue > 100 && (
                       <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">
@@ -126,26 +136,33 @@ const RecoveryAgent: React.FC = () => {
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 shadow-lg overflow-hidden">
           <div className="p-4 border-b bg-gray-50 flex items-center justify-between">
-            <button onClick={() => setStep('list')} className="text-sm font-medium text-gray-500 hover:text-gray-700">
+            <button
+              onClick={() => setStep('list')}
+              className="text-sm font-medium text-gray-500 hover:text-gray-700"
+            >
               &larr; Back to List
             </button>
-            <div className="text-sm font-semibold text-gray-900">
-              Review Recovery Sequence
-            </div>
+            <div className="text-sm font-semibold text-gray-900">Review Recovery Sequence</div>
             <div className="w-20" />
           </div>
 
           <div className="p-6">
             <div className="mb-6 grid md:grid-cols-2 gap-4">
               <div className="p-4 bg-gray-50 rounded-lg">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Customer</label>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Customer
+                </label>
                 <div className="font-medium text-gray-900">{selectedCart?.customerName}</div>
                 <div className="text-sm text-gray-500">{selectedCart?.customerEmail}</div>
               </div>
               <div className="p-4 bg-gray-50 rounded-lg">
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Cart Details</label>
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Cart Details
+                </label>
                 <div className="font-medium text-gray-900">{selectedCart?.items.length} Items</div>
-                <div className="text-sm text-indigo-600 font-bold">${selectedCart?.totalValue.toFixed(2)}</div>
+                <div className="text-sm text-indigo-600 font-bold">
+                  ${selectedCart?.totalValue.toFixed(2)}
+                </div>
               </div>
             </div>
 
@@ -158,7 +175,9 @@ const RecoveryAgent: React.FC = () => {
                 {isGenerating ? (
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-indigo-400">
                     <Loader2 className="w-8 h-8 animate-spin mb-2" />
-                    <span className="text-sm animate-pulse">AI Agent is crafting a personalized response...</span>
+                    <span className="text-sm animate-pulse">
+                      AI Agent is crafting a personalized response...
+                    </span>
                   </div>
                 ) : (
                   <textarea

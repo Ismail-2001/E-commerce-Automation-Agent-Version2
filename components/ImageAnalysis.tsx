@@ -1,5 +1,15 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Camera, Sparkles, Loader2, Image, Tag, Search, FileText, RotateCcw, Copy, Check } from 'lucide-react';
+import {
+  Upload,
+  Sparkles,
+  Loader2,
+  Image,
+  Tag,
+  FileText,
+  RotateCcw,
+  Copy,
+  Check,
+} from 'lucide-react';
 import { analyzeProductImage } from '../services/llmService';
 
 interface AnalysisResult {
@@ -51,7 +61,7 @@ const ImageAnalysis: React.FC = () => {
       // Parse AI response into structured data
       const parsed = parseAnalysisResult(rawResult);
       setResult(parsed);
-    } catch (err) {
+    } catch (_err) {
       setResult({
         description: 'Analysis failed. Please try again.',
         condition: 'Unknown',
@@ -67,9 +77,6 @@ const ImageAnalysis: React.FC = () => {
   };
 
   const parseAnalysisResult = (raw: string): AnalysisResult => {
-    // Try to extract structured info from the AI response
-    const lines = raw.toLowerCase();
-
     const conditionMatch = raw.match(/condition[:\s]*([^\n.]+)/i);
     const keywordMatch = raw.match(/keyword[s]?[:\s]*([^\n]+)/i);
     const titleMatch = raw.match(/(?:suggested?\s*)?title[:\s]*([^\n]+)/i);
@@ -77,11 +84,15 @@ const ImageAnalysis: React.FC = () => {
     const categoryMatch = raw.match(/categor[y]?[:\s]*([^\n]+)/i);
 
     const keywords = keywordMatch
-      ? keywordMatch[1].split(/[,;]/).map(k => k.trim()).filter(Boolean).slice(0, 6)
+      ? keywordMatch[1]
+          .split(/[,;]/)
+          .map((k) => k.trim())
+          .filter(Boolean)
+          .slice(0, 6)
       : [];
 
     return {
-      description: raw.split('\n').filter(l => l.trim().length > 20)[0] || raw.slice(0, 200),
+      description: raw.split('\n').filter((l) => l.trim().length > 20)[0] || raw.slice(0, 200),
       condition: conditionMatch?.[1]?.trim() || 'Good',
       keywords,
       suggestedTitle: titleMatch?.[1]?.trim() || '',
@@ -109,7 +120,10 @@ const ImageAnalysis: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Product Image Analysis</h1>
-        <p className="text-gray-500">Upload a product photo to get AI-powered listing suggestions, SEO keywords, and pricing hints.</p>
+        <p className="text-gray-500">
+          Upload a product photo to get AI-powered listing suggestions, SEO keywords, and pricing
+          hints.
+        </p>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -147,14 +161,22 @@ const ImageAnalysis: React.FC = () => {
                 <div className="w-20 h-20 bg-indigo-100 rounded-2xl flex items-center justify-center mb-4">
                   <Upload className="w-10 h-10 text-indigo-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">Drop your product photo here</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  Drop your product photo here
+                </h3>
                 <p className="text-gray-500 text-sm max-w-xs">
                   Upload a clear product image (JPG, PNG, WebP) and let AI generate listing details
                 </p>
                 <div className="mt-4 flex gap-2">
-                  <span className="px-3 py-1 bg-white border border-gray-200 rounded-full text-xs text-gray-500">JPG</span>
-                  <span className="px-3 py-1 bg-white border border-gray-200 rounded-full text-xs text-gray-500">PNG</span>
-                  <span className="px-3 py-1 bg-white border border-gray-200 rounded-full text-xs text-gray-500">WebP</span>
+                  <span className="px-3 py-1 bg-white border border-gray-200 rounded-full text-xs text-gray-500">
+                    JPG
+                  </span>
+                  <span className="px-3 py-1 bg-white border border-gray-200 rounded-full text-xs text-gray-500">
+                    PNG
+                  </span>
+                  <span className="px-3 py-1 bg-white border border-gray-200 rounded-full text-xs text-gray-500">
+                    WebP
+                  </span>
                 </div>
               </>
             )}
@@ -168,9 +190,13 @@ const ImageAnalysis: React.FC = () => {
                 className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-200"
               >
                 {analyzing ? (
-                  <><Loader2 className="w-5 h-5 animate-spin" /> Analyzing...</>
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" /> Analyzing...
+                  </>
                 ) : (
-                  <><Sparkles className="w-5 h-5" /> Analyze with AI</>
+                  <>
+                    <Sparkles className="w-5 h-5" /> Analyze with AI
+                  </>
                 )}
               </button>
               <button
@@ -188,13 +214,19 @@ const ImageAnalysis: React.FC = () => {
           {!result && !analyzing ? (
             <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-8 text-gray-400">
               <Image className="w-16 h-16 mb-4 text-indigo-100" />
-              <p className="font-medium">Upload and analyze a product image<br />to see AI-generated listing details</p>
+              <p className="font-medium">
+                Upload and analyze a product image
+                <br />
+                to see AI-generated listing details
+              </p>
             </div>
           ) : analyzing ? (
             <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-8">
               <Loader2 className="w-10 h-10 text-indigo-600 animate-spin mb-4" />
               <p className="text-gray-600 font-medium">Analyzing product image...</p>
-              <p className="text-gray-400 text-sm mt-1">Extracting features, condition, and SEO keywords</p>
+              <p className="text-gray-400 text-sm mt-1">
+                Extracting features, condition, and SEO keywords
+              </p>
             </div>
           ) : result ? (
             <div className="p-6 space-y-5">
@@ -212,7 +244,11 @@ const ImageAnalysis: React.FC = () => {
                     onClick={handleCopy}
                     className="px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
                   >
-                    {copied ? <Check className="w-3.5 h-3.5 inline mr-1" /> : <Copy className="w-3.5 h-3.5 inline mr-1" />}
+                    {copied ? (
+                      <Check className="w-3.5 h-3.5 inline mr-1" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5 inline mr-1" />
+                    )}
                     {copied ? 'Copied' : 'Copy'}
                   </button>
                 </div>
@@ -236,24 +272,36 @@ const ImageAnalysis: React.FC = () => {
                   <div className="grid grid-cols-2 gap-3">
                     {result.suggestedTitle && (
                       <div className="col-span-2 bg-gray-50 rounded-lg p-3">
-                        <span className="text-xs font-bold text-gray-400 uppercase">Suggested Title</span>
-                        <p className="text-sm font-semibold text-gray-900 mt-0.5">{result.suggestedTitle}</p>
+                        <span className="text-xs font-bold text-gray-400 uppercase">
+                          Suggested Title
+                        </span>
+                        <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                          {result.suggestedTitle}
+                        </p>
                       </div>
                     )}
                     <div className="bg-gray-50 rounded-lg p-3">
                       <span className="text-xs font-bold text-gray-400 uppercase">Condition</span>
-                      <p className="text-sm font-semibold text-gray-900 mt-0.5">{result.condition}</p>
+                      <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                        {result.condition}
+                      </p>
                     </div>
                     {result.category && (
                       <div className="bg-gray-50 rounded-lg p-3">
                         <span className="text-xs font-bold text-gray-400 uppercase">Category</span>
-                        <p className="text-sm font-semibold text-gray-900 mt-0.5">{result.category}</p>
+                        <p className="text-sm font-semibold text-gray-900 mt-0.5">
+                          {result.category}
+                        </p>
                       </div>
                     )}
                     {result.suggestedPrice && (
                       <div className="bg-green-50 rounded-lg p-3 border border-green-100">
-                        <span className="text-xs font-bold text-green-600 uppercase">Suggested Price</span>
-                        <p className="text-sm font-bold text-green-800 mt-0.5">{result.suggestedPrice}</p>
+                        <span className="text-xs font-bold text-green-600 uppercase">
+                          Suggested Price
+                        </span>
+                        <p className="text-sm font-bold text-green-800 mt-0.5">
+                          {result.suggestedPrice}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -266,7 +314,10 @@ const ImageAnalysis: React.FC = () => {
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {result.keywords.map((kw, i) => (
-                          <span key={i} className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium border border-indigo-100">
+                          <span
+                            key={i}
+                            className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium border border-indigo-100"
+                          >
                             {kw}
                           </span>
                         ))}

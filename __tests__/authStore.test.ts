@@ -26,7 +26,7 @@ describe('authStore', () => {
   it('signOut clears all auth state', async () => {
     // Set some mock auth state
     useAuthStore.setState({
-      user: { id: 'test' } as any,
+      user: { id: 'test' } as unknown as import('@supabase/supabase-js').User,
       merchant: { id: 'merchant-1', name: 'Test', slug: 'test' },
     });
     await useAuthStore.getState().signOut();

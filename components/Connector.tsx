@@ -1,19 +1,36 @@
 import React, { useState } from 'react';
 import {
-  Store, Link2, CheckCircle2, XCircle, Loader2, ArrowRight,
-  ShoppingBag, Package, AlertTriangle, RefreshCw
+  Link2,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  ShoppingBag,
+  Package,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
-import { testConnection, syncStorefront, Platform, ConnectorConfig } from '../services/ecommerceConnector';
+import {
+  testConnection,
+  syncStorefront,
+  Platform,
+  ConnectorConfig,
+} from '../services/ecommerceConnector';
 
 const Connector: React.FC = () => {
   const [platform, setPlatform] = useState<Platform | null>(null);
   const [storeUrl, setStoreUrl] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');
-  const [status, setStatus] = useState<'idle' | 'testing' | 'connected' | 'syncing' | 'synced' | 'error'>('idle');
+  const [status, setStatus] = useState<
+    'idle' | 'testing' | 'connected' | 'syncing' | 'synced' | 'error'
+  >('idle');
   const [storeName, setStoreName] = useState('');
   const [error, setError] = useState('');
-  const [syncResult, setSyncResult] = useState<{ products: number; orders: number; errors: string[] } | null>(null);
+  const [syncResult, setSyncResult] = useState<{
+    products: number;
+    orders: number;
+    errors: string[];
+  } | null>(null);
 
   const getConfig = (): ConnectorConfig => ({
     platform: platform!,
@@ -65,19 +82,33 @@ const Connector: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Storefront Connector</h1>
-        <p className="text-gray-500">Connect your Shopify or WooCommerce store to sync products and orders.</p>
+        <p className="text-gray-500">
+          Connect your Shopify or WooCommerce store to sync products and orders.
+        </p>
       </div>
 
       <div className="max-w-2xl mx-auto">
         {/* Step 1: Platform Selection */}
         {!platform ? (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-gray-800 text-center mb-6">Choose your platform</h2>
+            <h2 className="text-lg font-semibold text-gray-800 text-center mb-6">
+              Choose your platform
+            </h2>
             <div className="grid grid-cols-2 gap-4">
               {[
-                { id: 'shopify' as Platform, name: 'Shopify', color: 'bg-green-50 border-green-200 hover:border-green-400', icon: '🟢' },
-                { id: 'woocommerce' as Platform, name: 'WooCommerce', color: 'bg-purple-50 border-purple-200 hover:border-purple-400', icon: '🟣' },
-              ].map(p => (
+                {
+                  id: 'shopify' as Platform,
+                  name: 'Shopify',
+                  color: 'bg-green-50 border-green-200 hover:border-green-400',
+                  icon: '🟢',
+                },
+                {
+                  id: 'woocommerce' as Platform,
+                  name: 'WooCommerce',
+                  color: 'bg-purple-50 border-purple-200 hover:border-purple-400',
+                  icon: '🟣',
+                },
+              ].map((p) => (
                 <button
                   key={p.id}
                   onClick={() => setPlatform(p.id)}
@@ -97,7 +128,9 @@ const Connector: React.FC = () => {
             {/* Header */}
             <div className="p-5 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl ${platform === 'shopify' ? 'bg-green-100' : 'bg-purple-100'}`}>
+                <div
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl ${platform === 'shopify' ? 'bg-green-100' : 'bg-purple-100'}`}
+                >
                   {platform === 'shopify' ? '🟢' : '🟣'}
                 </div>
                 <div>
@@ -115,12 +148,18 @@ const Connector: React.FC = () => {
               {(status === 'idle' || status === 'testing' || status === 'error') && (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Store URL</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      Store URL
+                    </label>
                     <input
                       type="url"
                       value={storeUrl}
-                      onChange={e => setStoreUrl(e.target.value)}
-                      placeholder={platform === 'shopify' ? 'https://your-store.myshopify.com' : 'https://your-store.com'}
+                      onChange={(e) => setStoreUrl(e.target.value)}
+                      placeholder={
+                        platform === 'shopify'
+                          ? 'https://your-store.myshopify.com'
+                          : 'https://your-store.com'
+                      }
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
@@ -132,7 +171,7 @@ const Connector: React.FC = () => {
                     <input
                       type="password"
                       value={apiKey}
-                      onChange={e => setApiKey(e.target.value)}
+                      onChange={(e) => setApiKey(e.target.value)}
                       placeholder={platform === 'shopify' ? 'shpat_xxxxxx' : 'ck_xxxxxx'}
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
@@ -140,11 +179,13 @@ const Connector: React.FC = () => {
 
                   {platform === 'woocommerce' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Consumer Secret</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Consumer Secret
+                      </label>
                       <input
                         type="password"
                         value={apiSecret}
-                        onChange={e => setApiSecret(e.target.value)}
+                        onChange={(e) => setApiSecret(e.target.value)}
                         placeholder="cs_xxxxxx"
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
@@ -166,9 +207,13 @@ const Connector: React.FC = () => {
                     className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
                   >
                     {status === 'testing' ? (
-                      <><Loader2 className="w-5 h-5 animate-spin" /> Testing Connection...</>
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" /> Testing Connection...
+                      </>
                     ) : (
-                      <><Link2 className="w-5 h-5" /> Test Connection</>
+                      <>
+                        <Link2 className="w-5 h-5" /> Test Connection
+                      </>
                     )}
                   </button>
                 </>
@@ -192,9 +237,13 @@ const Connector: React.FC = () => {
                     className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all"
                   >
                     {status === 'syncing' ? (
-                      <><Loader2 className="w-5 h-5 animate-spin" /> Syncing Data...</>
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" /> Syncing Data...
+                      </>
                     ) : (
-                      <><RefreshCw className="w-5 h-5" /> Sync Products & Orders</>
+                      <>
+                        <RefreshCw className="w-5 h-5" /> Sync Products & Orders
+                      </>
                     )}
                   </button>
                 </div>
@@ -227,7 +276,9 @@ const Connector: React.FC = () => {
                         <AlertTriangle className="w-4 h-4" /> Warnings
                       </div>
                       {syncResult.errors.map((err, i) => (
-                        <p key={i} className="text-xs text-amber-600 ml-6">{err}</p>
+                        <p key={i} className="text-xs text-amber-600 ml-6">
+                          {err}
+                        </p>
                       ))}
                     </div>
                   )}

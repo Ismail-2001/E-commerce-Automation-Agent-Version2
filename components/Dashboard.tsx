@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import {
-  TrendingUp,
   Users,
   ShoppingBag,
   DollarSign,
@@ -10,28 +9,40 @@ import {
   Zap,
   Package,
   Mail,
-  MoreHorizontal
+  MoreHorizontal,
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { useDataStore } from '../stores/dataStore';
 import { formatDistanceToNow } from 'date-fns';
+import { LoadingSpinner } from './StatusStates';
 
 const Dashboard: React.FC = () => {
-  const [greeting, setGreeting] = useState('');
-  const { products, orders, carts, salesData, agentActivity } = useDataStore();
+  const { products, orders, carts, salesData, agentActivity, loading } = useDataStore();
 
-  useEffect(() => {
+  const greeting = useMemo(() => {
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good morning');
-    else if (hour < 18) setGreeting('Good afternoon');
-    else setGreeting('Good evening');
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
   }, []);
 
+  if (loading) return <LoadingSpinner message="Loading dashboard..." />;
+
   const totalRevenue = salesData.reduce((sum, d) => sum + d.revenue, 0);
-  const pendingOrders = orders.filter(o => o.status === 'Pending' || o.status === 'Shipped').length;
-  const lowStockCount = products.filter(p => p.stock < 10).length;
-  const abandonedCarts = carts.filter(c => c.status === 'abandoned');
-  const recoveredCarts = carts.filter(c => c.status === 'recovered').length;
+  const pendingOrders = orders.filter(
+    (o) => o.status === 'Pending' || o.status === 'Shipped'
+  ).length;
+  const lowStockCount = products.filter((p) => p.stock < 10).length;
+  const abandonedCarts = carts.filter((c) => c.status === 'abandoned');
+  const recoveredCarts = carts.filter((c) => c.status === 'recovered').length;
   const recoveryRate = carts.length > 0 ? Math.round((recoveredCarts / carts.length) * 100) : 0;
 
   const stats = [
@@ -42,7 +53,7 @@ const Dashboard: React.FC = () => {
       trend: 'up' as const,
       icon: DollarSign,
       color: 'text-emerald-600',
-      bg: 'bg-emerald-100'
+      bg: 'bg-emerald-100',
     },
     {
       label: 'Active Orders',
@@ -51,7 +62,7 @@ const Dashboard: React.FC = () => {
       trend: 'up' as const,
       icon: ShoppingBag,
       color: 'text-blue-600',
-      bg: 'bg-blue-100'
+      bg: 'bg-blue-100',
     },
     {
       label: 'Low Stock Items',
@@ -60,7 +71,7 @@ const Dashboard: React.FC = () => {
       trend: 'down' as const,
       icon: Package,
       color: 'text-amber-600',
-      bg: 'bg-amber-100'
+      bg: 'bg-amber-100',
     },
     {
       label: 'Recovery Rate',
@@ -69,8 +80,8 @@ const Dashboard: React.FC = () => {
       trend: 'up' as const,
       icon: Activity,
       color: 'text-indigo-600',
-      bg: 'bg-indigo-100'
-    }
+      bg: 'bg-indigo-100',
+    },
   ];
 
   const iconMap: Record<string, React.ElementType> = {
@@ -98,17 +109,39 @@ const Dashboard: React.FC = () => {
             <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
               <Zap className="w-5 h-5 text-yellow-300" />
             </div>
-            <span className="text-indigo-100 font-medium tracking-wide text-sm uppercase">AI Executive Briefing</span>
+            <span className="text-indigo-100 font-medium tracking-wide text-sm uppercase">
+              AI Executive Briefing
+            </span>
           </div>
 
           <h1 className="text-3xl font-bold mb-2">{greeting}, Admin.</h1>
           <p className="text-indigo-100 text-lg max-w-2xl leading-relaxed">
-            Your store is performing well today. <span className="font-bold text-white">Revenue is ${totalRevenue.toLocaleString()}</span> this week.
+            Your store is performing well today.{' '}
+            <span className="font-bold text-white">
+              Revenue is ${totalRevenue.toLocaleString()}
+            </span>{' '}
+            this week.
             {lowStockCount > 0 && (
-              <> I've detected <span className="font-bold text-white border-b border-indigo-300 cursor-pointer">{lowStockCount} low-stock items</span> that need review.</>
+              <>
+                {' '}
+                I&apos;ve detected{' '}
+                <span className="font-bold text-white border-b border-indigo-300 cursor-pointer">
+                  {lowStockCount} low-stock items
+                </span>{' '}
+                that need review.
+              </>
             )}
             {abandonedCarts.length > 0 && (
-              <> The <span className="font-bold text-white border-b border-indigo-300 cursor-pointer">Recovery Agent</span> has identified ${abandonedCarts.reduce((a, c) => a + c.totalValue, 0).toLocaleString()} in potential lost sales.</>
+              <>
+                {' '}
+                The{' '}
+                <span className="font-bold text-white border-b border-indigo-300 cursor-pointer">
+                  Recovery Agent
+                </span>{' '}
+                has identified $
+                {abandonedCarts.reduce((a, c) => a + c.totalValue, 0).toLocaleString()} in potential
+                lost sales.
+              </>
             )}
           </p>
 
@@ -126,14 +159,24 @@ const Dashboard: React.FC = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, index) => (
-          <div key={index} className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+          <div
+            key={index}
+            className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+          >
             <div className="flex justify-between items-start mb-4">
               <div className={`${stat.bg} p-3 rounded-lg`}>
                 <stat.icon className={`w-6 h-6 ${stat.color}`} />
               </div>
-              <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${stat.trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-                }`}>
-                {stat.trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+              <div
+                className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
+                  stat.trend === 'up' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+                }`}
+              >
+                {stat.trend === 'up' ? (
+                  <ArrowUpRight className="w-3 h-3" />
+                ) : (
+                  <ArrowDownRight className="w-3 h-3" />
+                )}
                 {stat.change}
               </div>
             </div>
@@ -166,10 +209,25 @@ const Dashboard: React.FC = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} tickFormatter={(value) => `$${value}`} />
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#9ca3af', fontSize: 12 }}
+                  dy={10}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: '#9ca3af', fontSize: 12 }}
+                  tickFormatter={(value) => `$${value}`}
+                />
                 <Tooltip
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  contentStyle={{
+                    borderRadius: '8px',
+                    border: 'none',
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                  }}
                   formatter={(value) => [`$${value}`, 'Revenue']}
                 />
                 <Area
@@ -193,56 +251,95 @@ const Dashboard: React.FC = () => {
           </h3>
 
           <div className="flex-1 space-y-6 overflow-y-auto pr-2">
-            {agentActivity.length > 0 ? (
-              agentActivity.slice(0, 6).map((item, i) => {
-                const Icon = iconMap[item.agent_type] || Mail;
-                const color = colorMap[item.agent_type] || 'bg-indigo-100 text-indigo-600';
-                const timeAgo = (() => {
-                  try { return formatDistanceToNow(new Date(item.created_at), { addSuffix: true }); }
-                  catch { return ''; }
-                })();
+            {agentActivity.length > 0
+              ? agentActivity.slice(0, 6).map((item, i) => {
+                  const Icon = iconMap[item.agent_type] || Mail;
+                  const color = colorMap[item.agent_type] || 'bg-indigo-100 text-indigo-600';
+                  const timeAgo = (() => {
+                    try {
+                      return formatDistanceToNow(new Date(item.created_at), { addSuffix: true });
+                    } catch {
+                      return '';
+                    }
+                  })();
 
-                return (
-                  <div key={item.id || i} className="flex gap-4 group cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded-lg transition-colors">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${color}`}>
-                      <Icon className="w-5 h-5" />
+                  return (
+                    <div
+                      key={item.id || i}
+                      className="flex gap-4 group cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded-lg transition-colors"
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${color}`}
+                      >
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center w-full mb-1">
+                          <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                            {item.agent_type} Agent
+                          </span>
+                          <span className="text-[10px] text-gray-400">{timeAgo}</span>
+                        </div>
+                        <p className="text-sm text-gray-800 font-medium leading-snug group-hover:text-indigo-600 transition-colors">
+                          {item.message}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              : // Fallback static feed for demo/mock mode
+                [
+                  {
+                    agent: 'Recovery',
+                    msg: 'Drafted email for cart #9281 (Value: $349)',
+                    time: '2m ago',
+                    icon: Mail,
+                    color: 'bg-indigo-100 text-indigo-600',
+                  },
+                  {
+                    agent: 'Inventory',
+                    msg: 'Flagged "Lumina Lamp" as low stock',
+                    time: '15m ago',
+                    icon: Package,
+                    color: 'bg-amber-100 text-amber-600',
+                  },
+                  {
+                    agent: 'Orders',
+                    msg: 'Identified VIP Customer: Bob Smith',
+                    time: '1h ago',
+                    icon: Users,
+                    color: 'bg-purple-100 text-purple-600',
+                  },
+                  {
+                    agent: 'Recovery',
+                    msg: 'Sent discount code to Sarah Jenkins',
+                    time: '3h ago',
+                    icon: Mail,
+                    color: 'bg-indigo-100 text-indigo-600',
+                  },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className="flex gap-4 group cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded-lg transition-colors"
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${item.color}`}
+                    >
+                      <item.icon className="w-5 h-5" />
                     </div>
                     <div>
                       <div className="flex justify-between items-center w-full mb-1">
-                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">{item.agent_type} Agent</span>
-                        <span className="text-[10px] text-gray-400">{timeAgo}</span>
+                        <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                          {item.agent} Agent
+                        </span>
+                        <span className="text-[10px] text-gray-400">{item.time}</span>
                       </div>
                       <p className="text-sm text-gray-800 font-medium leading-snug group-hover:text-indigo-600 transition-colors">
-                        {item.message}
+                        {item.msg}
                       </p>
                     </div>
                   </div>
-                );
-              })
-            ) : (
-              // Fallback static feed for demo/mock mode
-              [
-                { agent: 'Recovery', msg: 'Drafted email for cart #9281 (Value: $349)', time: '2m ago', icon: Mail, color: 'bg-indigo-100 text-indigo-600' },
-                { agent: 'Inventory', msg: 'Flagged "Lumina Lamp" as low stock', time: '15m ago', icon: Package, color: 'bg-amber-100 text-amber-600' },
-                { agent: 'Orders', msg: 'Identified VIP Customer: Bob Smith', time: '1h ago', icon: Users, color: 'bg-purple-100 text-purple-600' },
-                { agent: 'Recovery', msg: 'Sent discount code to Sarah Jenkins', time: '3h ago', icon: Mail, color: 'bg-indigo-100 text-indigo-600' },
-              ].map((item, i) => (
-                <div key={i} className="flex gap-4 group cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded-lg transition-colors">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${item.color}`}>
-                    <item.icon className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="flex justify-between items-center w-full mb-1">
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">{item.agent} Agent</span>
-                      <span className="text-[10px] text-gray-400">{item.time}</span>
-                    </div>
-                    <p className="text-sm text-gray-800 font-medium leading-snug group-hover:text-indigo-600 transition-colors">
-                      {item.msg}
-                    </p>
-                  </div>
-                </div>
-              ))
-            )}
+                ))}
           </div>
 
           <button className="w-full mt-4 py-2 text-sm text-indigo-600 font-medium hover:bg-indigo-50 rounded-lg transition-colors">

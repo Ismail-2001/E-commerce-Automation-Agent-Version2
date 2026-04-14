@@ -1,5 +1,17 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Bot, User, Sparkles, TrendingUp, Package, MessageSquare, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import {
+  Send,
+  Bot,
+  User,
+  Sparkles,
+  TrendingUp,
+  Package,
+  MessageSquare,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+} from 'lucide-react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChatMessage, WidgetData } from '../types';
 import { getAgentResponse } from '../services/llmService';
@@ -16,7 +28,15 @@ const ChatAgent: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const { isListening, transcript, isSupported, startListening, stopListening, speak, isSpeaking } = useVoice({
+  const {
+    isListening,
+    transcript,
+    isSupported,
+    startListening,
+    stopListening,
+    speak,
+    isSpeaking: _isSpeaking,
+  } = useVoice({
     onResult: (text) => {
       if (voiceMode) {
         handleSend(text);
@@ -58,7 +78,7 @@ const ChatAgent: React.FC = () => {
         timestamp: new Date(),
         isError: true,
       };
-      setMessages(prev => [...prev, throttleMsg]);
+      setMessages((prev) => [...prev, throttleMsg]);
       return;
     }
 
@@ -66,19 +86,23 @@ const ChatAgent: React.FC = () => {
       id: `user-${Date.now()}-${++messageCounter.current}`,
       role: 'user',
       content: text,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setIsLoading(true);
 
     try {
       const rawResponse = await getAgentResponse(text, products, orders);
 
-      let parsedResponse: { text: string; ui_widget?: 'product_card' | 'order_card' | 'none'; widget_data?: WidgetData } = {
-        text: "",
-        ui_widget: "none"
+      let parsedResponse: {
+        text: string;
+        ui_widget?: 'product_card' | 'order_card' | 'none';
+        widget_data?: WidgetData;
+      } = {
+        text: '',
+        ui_widget: 'none',
       };
 
       try {
@@ -91,33 +115,33 @@ const ChatAgent: React.FC = () => {
         } else {
           parsedResponse = { text: rawResponse, ui_widget: 'none' };
         }
-      } catch (e) {
+      } catch (_e) {
         parsedResponse = { text: rawResponse, ui_widget: 'none' };
       }
 
       const aiMsg: ChatMessage = {
         id: `ai-${Date.now()}-${++messageCounter.current}`,
         role: 'model',
-        content: parsedResponse.text || "Processed.",
+        content: parsedResponse.text || 'Processed.',
         widget: parsedResponse.ui_widget,
         widgetData: parsedResponse.widget_data,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-      setMessages(prev => [...prev, aiMsg]);
+      setMessages((prev) => [...prev, aiMsg]);
 
       // Auto-speak response in voice mode
       if (voiceMode && parsedResponse.text) {
         speak(parsedResponse.text);
       }
-    } catch (error) {
+    } catch (_error) {
       const errorMsg: ChatMessage = {
         id: `err-${Date.now()}-${++messageCounter.current}`,
         role: 'model',
-        content: "Network error. Please try again.",
+        content: 'Network error. Please try again.',
         timestamp: new Date(),
-        isError: true
+        isError: true,
       };
-      setMessages(prev => [...prev, errorMsg]);
+      setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
     }
@@ -132,8 +156,8 @@ const ChatAgent: React.FC = () => {
 
   const suggestions = [
     { icon: <TrendingUp className="w-4 h-4" />, text: "Analyze this week's sales trends" },
-    { icon: <Package className="w-4 h-4" />, text: "Which products are low on stock?" },
-    { icon: <MessageSquare className="w-4 h-4" />, text: "Draft a polite refund email" },
+    { icon: <Package className="w-4 h-4" />, text: 'Which products are low on stock?' },
+    { icon: <MessageSquare className="w-4 h-4" />, text: 'Draft a polite refund email' },
   ];
 
   const renderWidget = (msg: ChatMessage) => {
@@ -142,10 +166,14 @@ const ChatAgent: React.FC = () => {
       return (
         <div className="mt-3 p-3 bg-white border border-gray-200 rounded-xl shadow-sm flex items-center gap-4 max-w-sm">
           <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-            <img src={p.image || 'https://via.placeholder.com/50'} alt={p.name} className="w-full h-full object-cover" />
+            <img
+              src={p.image || 'https://via.placeholder.com/50'}
+              alt={p.name}
+              className="w-full h-full object-cover"
+            />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold text-gray-900 truncate">{p.name || "Unknown Product"}</h4>
+            <h4 className="font-semibold text-gray-900 truncate">{p.name || 'Unknown Product'}</h4>
             <div className="flex items-center gap-2 text-xs text-gray-500">
               <span>Stock: {p.stock ?? 0}</span>
               <span className="font-bold text-indigo-600">${p.price ?? 0}</span>
@@ -201,7 +229,8 @@ const ChatAgent: React.FC = () => {
             </div>
             <h3 className="text-2xl font-bold text-gray-900 mb-2">How can I help you grow?</h3>
             <p className="text-gray-500 max-w-md mb-8">
-              I'm connected to your inventory and sales data. Ask me anything about your business performance.
+              I&apos;m connected to your inventory and sales data. Ask me anything about your
+              business performance.
             </p>
             <div className="grid gap-3 w-full max-w-lg">
               {suggestions.map((s, i) => (
@@ -220,7 +249,11 @@ const ChatAgent: React.FC = () => {
           </div>
         ) : (
           <div
-            style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: '100%',
+              position: 'relative',
+            }}
           >
             {virtualizer.getVirtualItems().map((virtualRow) => {
               const isLoadingRow = virtualRow.index === messages.length;
@@ -231,7 +264,13 @@ const ChatAgent: React.FC = () => {
                     key="loading"
                     data-index={virtualRow.index}
                     ref={virtualizer.measureElement}
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)` }}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
                     className="px-4 py-3"
                   >
                     <div className="flex gap-4">
@@ -254,20 +293,35 @@ const ChatAgent: React.FC = () => {
                   key={msg.id}
                   data-index={virtualRow.index}
                   ref={virtualizer.measureElement}
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)` }}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
                   className="px-4 py-3"
                 >
                   <div className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm
-                      ${msg.role === 'user' ? 'bg-gray-900 text-white' : 'bg-indigo-600 text-white'}`}>
-                      {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm
+                      ${msg.role === 'user' ? 'bg-gray-900 text-white' : 'bg-indigo-600 text-white'}`}
+                    >
+                      {msg.role === 'user' ? (
+                        <User className="w-4 h-4" />
+                      ) : (
+                        <Bot className="w-4 h-4" />
+                      )}
                     </div>
                     <div className="max-w-[80%]">
-                      <div className={`rounded-2xl p-4 shadow-sm text-sm leading-relaxed whitespace-pre-wrap
-                        ${msg.role === 'user'
-                          ? 'bg-gray-900 text-white rounded-tr-none'
-                          : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none'
-                        } ${msg.isError ? 'bg-red-50 text-red-600 border-red-100' : ''}`}>
+                      <div
+                        className={`rounded-2xl p-4 shadow-sm text-sm leading-relaxed whitespace-pre-wrap
+                        ${
+                          msg.role === 'user'
+                            ? 'bg-gray-900 text-white rounded-tr-none'
+                            : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none'
+                        } ${msg.isError ? 'bg-red-50 text-red-600 border-red-100' : ''}`}
+                      >
                         {msg.content}
                       </div>
                       {msg.role === 'model' && renderWidget(msg)}

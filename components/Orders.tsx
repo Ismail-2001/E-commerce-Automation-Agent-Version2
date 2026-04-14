@@ -1,12 +1,26 @@
 import React, { useState } from 'react';
-import { ShoppingBag, Search, ClipboardCheck, Truck, RotateCcw, Star, X, Check, Copy, Zap, RefreshCw } from 'lucide-react';
+import {
+  ShoppingBag,
+  Search,
+  ClipboardCheck,
+  Truck,
+  RotateCcw,
+  Star,
+  X,
+  Check,
+  Copy,
+  Zap,
+  RefreshCw,
+} from 'lucide-react';
 import { Order } from '../types';
 import { analyzeOrder, generateOrderActionContent, OrderInsight } from '../services/orderAgent';
 import { useDataStore } from '../stores/dataStore';
 import { rateLimiter } from '../lib/rateLimiter';
+import { LoadingSpinner, EmptyState, ErrorBanner } from './StatusStates';
 
 const Orders: React.FC = () => {
-  const { orders } = useDataStore();
+  const { orders, loading: storeLoading } = useDataStore();
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [aiInsight, setAiInsight] = useState<OrderInsight | null>(null);
@@ -14,19 +28,26 @@ const Orders: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
 
-  const filteredOrders = orders.filter(order =>
-    order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    order.id.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredOrders = orders.filter(
+    (order) =>
+      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleAnalyze = async (order: Order) => {
     setSelectedOrder(order);
     setLoading(true);
     setActionContent('');
+    setError(null);
 
-    const insight = await analyzeOrder(order);
-    setAiInsight(insight);
-    setLoading(false);
+    try {
+      const insight = await analyzeOrder(order);
+      setAiInsight(insight);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to analyze order.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleExecuteAction = async () => {
@@ -34,33 +55,52 @@ const Orders: React.FC = () => {
     if (!rateLimiter.canCall('orders')) return;
 
     setGenerating(true);
-    const content = await generateOrderActionContent(selectedOrder, aiInsight.type);
-    setActionContent(content);
-    setGenerating(false);
+    setError(null);
+    try {
+      const content = await generateOrderActionContent(selectedOrder, aiInsight.type);
+      setActionContent(content);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to generate content.');
+    } finally {
+      setGenerating(false);
+    }
   };
+
+  if (storeLoading) return <LoadingSpinner message="Loading orders..." />;
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Shipped': return 'bg-blue-100 text-blue-700';
-      case 'Delivered': return 'bg-green-100 text-green-700';
-      case 'Pending': return 'bg-amber-100 text-amber-700';
-      case 'Returned': return 'bg-rose-100 text-rose-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'Shipped':
+        return 'bg-blue-100 text-blue-700';
+      case 'Delivered':
+        return 'bg-green-100 text-green-700';
+      case 'Pending':
+        return 'bg-amber-100 text-amber-700';
+      case 'Returned':
+        return 'bg-rose-100 text-rose-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'Shipped': return <Truck className="w-4 h-4" />;
-      case 'Delivered': return <ClipboardCheck className="w-4 h-4" />;
-      case 'Pending': return <RefreshCw className="w-4 h-4" />;
-      case 'Returned': return <RotateCcw className="w-4 h-4" />;
-      default: return <ShoppingBag className="w-4 h-4" />;
+      case 'Shipped':
+        return <Truck className="w-4 h-4" />;
+      case 'Delivered':
+        return <ClipboardCheck className="w-4 h-4" />;
+      case 'Pending':
+        return <RefreshCw className="w-4 h-4" />;
+      case 'Returned':
+        return <RotateCcw className="w-4 h-4" />;
+      default:
+        return <ShoppingBag className="w-4 h-4" />;
     }
   };
 
   return (
     <div className="space-y-6">
+      {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Smart Order Processor</h1>
@@ -80,14 +120,24 @@ const Orders: React.FC = () => {
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
-          {filteredOrders.map(order => (
+          {filteredOrders.length === 0 && (
+            <EmptyState
+              title="No orders found"
+              subtitle={
+                searchTerm ? 'Try a different search term.' : 'Orders will appear here once placed.'
+              }
+            />
+          )}
+          {filteredOrders.map((order) => (
             <div
               key={order.id}
               onClick={() => handleAnalyze(order)}
               className={`bg-white p-5 rounded-xl border border-gray-200 cursor-pointer hover:shadow-md transition-all flex items-center gap-4 group
                 ${selectedOrder?.id === order.id ? 'ring-2 ring-indigo-500 border-transparent' : ''}`}
             >
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${getStatusColor(order.status)} bg-opacity-20`}>
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center ${getStatusColor(order.status)} bg-opacity-20`}
+              >
                 {getStatusIcon(order.status)}
               </div>
 
@@ -97,7 +147,9 @@ const Orders: React.FC = () => {
                   <span className="font-bold text-gray-900">${order.total.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-sm text-gray-500">
-                  <span>{order.id} • {order.items} items</span>
+                  <span>
+                    {order.id} • {order.items} items
+                  </span>
                   <span>{order.date}</span>
                 </div>
               </div>
@@ -118,13 +170,18 @@ const Orders: React.FC = () => {
                   <div>
                     <h2 className="font-bold text-gray-900">Order Analysis</h2>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 font-medium ${getStatusColor(selectedOrder.status)}`}>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 font-medium ${getStatusColor(selectedOrder.status)}`}
+                      >
                         {getStatusIcon(selectedOrder.status)}
                         {selectedOrder.status}
                       </span>
                     </div>
                   </div>
-                  <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-gray-600">
+                  <button
+                    onClick={() => setSelectedOrder(null)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
@@ -133,23 +190,40 @@ const Orders: React.FC = () => {
                   {loading ? (
                     <div className="h-full flex flex-col items-center justify-center space-y-3">
                       <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin" />
-                      <span className="text-sm font-medium text-gray-500 animate-pulse">Analyzing customer history...</span>
+                      <span className="text-sm font-medium text-gray-500 animate-pulse">
+                        Analyzing customer history...
+                      </span>
                     </div>
                   ) : aiInsight ? (
                     <div className="space-y-6">
-                      <div className={`p-4 rounded-xl border-l-4 ${aiInsight.type === 'return_risk' ? 'bg-rose-50 border-rose-500' :
-                          aiInsight.type === 'vip' ? 'bg-purple-50 border-purple-500' :
-                            aiInsight.type === 'pending' ? 'bg-amber-50 border-amber-500' :
-                              'bg-green-50 border-green-500'}`}>
+                      <div
+                        className={`p-4 rounded-xl border-l-4 ${
+                          aiInsight.type === 'return_risk'
+                            ? 'bg-rose-50 border-rose-500'
+                            : aiInsight.type === 'vip'
+                              ? 'bg-purple-50 border-purple-500'
+                              : aiInsight.type === 'pending'
+                                ? 'bg-amber-50 border-amber-500'
+                                : 'bg-green-50 border-green-500'
+                        }`}
+                      >
                         <div className="flex items-start gap-3">
-                          {aiInsight.type === 'vip' && <Star className="w-5 h-5 text-purple-600 mt-0.5" />}
-                          {aiInsight.type === 'return_risk' && <RotateCcw className="w-5 h-5 text-rose-600 mt-0.5" />}
-                          {aiInsight.type === 'ok' && <Check className="w-5 h-5 text-green-600 mt-0.5" />}
+                          {aiInsight.type === 'vip' && (
+                            <Star className="w-5 h-5 text-purple-600 mt-0.5" />
+                          )}
+                          {aiInsight.type === 'return_risk' && (
+                            <RotateCcw className="w-5 h-5 text-rose-600 mt-0.5" />
+                          )}
+                          {aiInsight.type === 'ok' && (
+                            <Check className="w-5 h-5 text-green-600 mt-0.5" />
+                          )}
                           <div>
                             <h3 className="text-sm font-bold uppercase tracking-wide mb-1 text-gray-800">
                               {aiInsight.type.split('_').join(' ')}
                             </h3>
-                            <p className="text-sm text-gray-700 leading-relaxed">{aiInsight.message}</p>
+                            <p className="text-sm text-gray-700 leading-relaxed">
+                              {aiInsight.message}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -161,7 +235,11 @@ const Orders: React.FC = () => {
                             className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-all shadow-indigo-200 shadow-lg"
                             disabled={generating}
                           >
-                            {generating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 fill-current" />}
+                            {generating ? (
+                              <RefreshCw className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Zap className="w-4 h-4 fill-current" />
+                            )}
                             {generating ? 'Generating Draft...' : aiInsight.action}
                           </button>
 

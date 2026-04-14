@@ -1,30 +1,55 @@
-import React, { useMemo, useState } from 'react';
-import { TrendingUp, TrendingDown, Minus, AlertTriangle, Package, Calendar, ShoppingBag, BarChart3 } from 'lucide-react';
+import React, { useMemo } from 'react';
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  AlertTriangle,
+  Package,
+  Calendar,
+  ShoppingBag,
+  BarChart3,
+} from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useDataStore } from '../stores/dataStore';
 import { forecastAll, ForecastResult } from '../services/forecastingService';
+import { LoadingSpinner, EmptyState } from './StatusStates';
 
 const Forecasting: React.FC = () => {
-  const { products, salesData } = useDataStore();
+  const { products, salesData, loading } = useDataStore();
 
   const forecasts = useMemo(() => forecastAll(products, salesData), [products, salesData]);
 
-  const urgentCount = forecasts.filter(f => f.daysUntilStockout < 7).length;
-  const risingCount = forecasts.filter(f => f.trend === 'rising').length;
+  if (loading) return <LoadingSpinner message="Loading forecasts..." />;
+  if (products.length === 0)
+    return (
+      <EmptyState
+        title="No products to forecast"
+        subtitle="Add products to see demand predictions."
+      />
+    );
+
+  const urgentCount = forecasts.filter((f) => f.daysUntilStockout < 7).length;
+  const risingCount = forecasts.filter((f) => f.trend === 'rising').length;
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'rising': return <TrendingUp className="w-4 h-4 text-green-600" />;
-      case 'declining': return <TrendingDown className="w-4 h-4 text-red-600" />;
-      default: return <Minus className="w-4 h-4 text-gray-400" />;
+      case 'rising':
+        return <TrendingUp className="w-4 h-4 text-green-600" />;
+      case 'declining':
+        return <TrendingDown className="w-4 h-4 text-red-600" />;
+      default:
+        return <Minus className="w-4 h-4 text-gray-400" />;
     }
   };
 
   const getTrendColor = (trend: string) => {
     switch (trend) {
-      case 'rising': return 'bg-green-50 text-green-700 border-green-200';
-      case 'declining': return 'bg-red-50 text-red-700 border-red-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+      case 'rising':
+        return 'bg-green-50 text-green-700 border-green-200';
+      case 'declining':
+        return 'bg-red-50 text-red-700 border-red-200';
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
@@ -38,7 +63,9 @@ const Forecasting: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Demand Forecasting</h1>
-        <p className="text-gray-500">AI-powered stock predictions based on sales velocity trends.</p>
+        <p className="text-gray-500">
+          AI-powered stock predictions based on sales velocity trends.
+        </p>
       </div>
 
       {/* Summary Stats */}
@@ -77,7 +104,13 @@ const Forecasting: React.FC = () => {
       {/* Forecast Cards */}
       <div className="space-y-4">
         {forecasts.map((forecast, i) => (
-          <ForecastCard key={i} forecast={forecast} getTrendIcon={getTrendIcon} getTrendColor={getTrendColor} getUrgencyColor={getUrgencyColor} />
+          <ForecastCard
+            key={i}
+            forecast={forecast}
+            getTrendIcon={getTrendIcon}
+            getTrendColor={getTrendColor}
+            getUrgencyColor={getUrgencyColor}
+          />
         ))}
       </div>
     </div>
@@ -99,7 +132,9 @@ const ForecastCard: React.FC<{
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getUrgencyColor(forecast.daysUntilStockout)}`}>
+          <div
+            className={`w-12 h-12 rounded-xl flex items-center justify-center ${getUrgencyColor(forecast.daysUntilStockout)}`}
+          >
             <Package className="w-6 h-6" />
           </div>
           <div>
@@ -109,7 +144,9 @@ const ForecastCard: React.FC<{
                 <ShoppingBag className="w-3.5 h-3.5" />
                 {forecast.avgDailySales} units/day
               </span>
-              <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getTrendColor(forecast.trend)}`}>
+              <span
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getTrendColor(forecast.trend)}`}
+              >
                 {getTrendIcon(forecast.trend)}
                 {forecast.trend}
               </span>
@@ -119,7 +156,9 @@ const ForecastCard: React.FC<{
 
         <div className="flex items-center gap-6">
           <div className="text-right">
-            <div className={`text-lg font-bold ${forecast.daysUntilStockout < 7 ? 'text-red-600' : 'text-gray-900'}`}>
+            <div
+              className={`text-lg font-bold ${forecast.daysUntilStockout < 7 ? 'text-red-600' : 'text-gray-900'}`}
+            >
               {forecast.daysUntilStockout >= 999 ? '999+' : forecast.daysUntilStockout} days
             </div>
             <div className="text-xs text-gray-500">until stockout</div>
@@ -140,15 +179,25 @@ const ForecastCard: React.FC<{
           <div className="grid md:grid-cols-2 gap-6">
             {/* Recommendation */}
             <div className="space-y-3">
-              <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wide">Recommendation</h4>
+              <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
+                Recommendation
+              </h4>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> Reorder by</span>
-                  <span className="font-semibold text-gray-900">{forecast.recommendedReorderDate}</span>
+                  <span className="text-gray-500 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" /> Reorder by
+                  </span>
+                  <span className="font-semibold text-gray-900">
+                    {forecast.recommendedReorderDate}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 flex items-center gap-1.5"><Package className="w-3.5 h-3.5" /> Order quantity</span>
-                  <span className="font-semibold text-gray-900">{forecast.recommendedOrderQty} units</span>
+                  <span className="text-gray-500 flex items-center gap-1.5">
+                    <Package className="w-3.5 h-3.5" /> Order quantity
+                  </span>
+                  <span className="font-semibold text-gray-900">
+                    {forecast.recommendedOrderQty} units
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Confidence</span>
@@ -159,7 +208,9 @@ const ForecastCard: React.FC<{
                         style={{ width: `${forecast.confidence}%` }}
                       />
                     </div>
-                    <span className="font-semibold text-gray-900 text-xs">{forecast.confidence}%</span>
+                    <span className="font-semibold text-gray-900 text-xs">
+                      {forecast.confidence}%
+                    </span>
                   </div>
                 </div>
               </div>
@@ -167,14 +218,31 @@ const ForecastCard: React.FC<{
 
             {/* Mini Chart */}
             <div>
-              <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">7-Day Forecast</h4>
+              <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">
+                7-Day Forecast
+              </h4>
               <div className="h-[150px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={forecast.weeklyForecast}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                    <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
-                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }} />
+                    <XAxis
+                      dataKey="day"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 11, fill: '#9ca3af' }}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 11, fill: '#9ca3af' }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: '8px',
+                        border: 'none',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                      }}
+                    />
                     <Bar dataKey="predicted" fill="#818cf8" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>

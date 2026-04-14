@@ -19,13 +19,15 @@ function linearRegression(data: number[]): { slope: number; intercept: number; r
   const n = data.length;
   if (n < 2) return { slope: 0, intercept: data[0] || 0, r2: 0 };
 
-  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0, sumY2 = 0;
+  let sumX = 0,
+    sumY = 0,
+    sumXY = 0,
+    sumX2 = 0;
   for (let i = 0; i < n; i++) {
     sumX += i;
     sumY += data[i];
     sumXY += i * data[i];
     sumX2 += i * i;
-    sumY2 += data[i] * data[i];
   }
 
   const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
@@ -62,11 +64,10 @@ function productVelocityWeight(product: Product, allProducts: Product[]): number
   const priceShare = totalPrice > 0 ? product.price / totalPrice : 1 / allProducts.length;
 
   // Stock turnover signal: lower stock relative to median = higher velocity
-  const stocks = allProducts.map(p => p.stock).sort((a, b) => a - b);
+  const stocks = allProducts.map((p) => p.stock).sort((a, b) => a - b);
   const medianStock = stocks[Math.floor(stocks.length / 2)] || 1;
-  const stockFactor = medianStock > 0
-    ? Math.min(2, Math.max(0.5, medianStock / Math.max(product.stock, 1)))
-    : 1;
+  const stockFactor =
+    medianStock > 0 ? Math.min(2, Math.max(0.5, medianStock / Math.max(product.stock, 1))) : 1;
 
   // Combine: price share * stock turnover factor, normalized so weights sum ≈ 1
   return priceShare * stockFactor;
@@ -82,11 +83,10 @@ export function forecastProduct(
   allProducts?: Product[]
 ): ForecastResult {
   // Per-product velocity weighting (falls back to uniform if no product list)
-  const weight = allProducts && allProducts.length > 1
-    ? productVelocityWeight(product, allProducts)
-    : 1;
+  const weight =
+    allProducts && allProducts.length > 1 ? productVelocityWeight(product, allProducts) : 1;
 
-  const salesValues = salesData.map(s => Math.max(0, s.sales * weight));
+  const salesValues = salesData.map((s) => Math.max(0, s.sales * weight));
 
   const { slope, intercept, r2 } = linearRegression(salesValues);
   const smoothed = ema(salesValues);
@@ -95,14 +95,14 @@ export function forecastProduct(
   const avgDailySales = smoothed.length > 0 ? smoothed[smoothed.length - 1] : 0;
 
   // Days until stockout
-  const daysUntilStockout = avgDailySales > 0
-    ? Math.max(0, Math.floor(product.stock / avgDailySales))
-    : Infinity;
+  const daysUntilStockout =
+    avgDailySales > 0 ? Math.max(0, Math.floor(product.stock / avgDailySales)) : Infinity;
 
   // Recommended reorder date (stockout - lead time, but at least today)
-  const reorderDays = daysUntilStockout === Infinity
-    ? 365 // No reorder needed — set far future date
-    : Math.max(0, daysUntilStockout - leadTimeDays);
+  const reorderDays =
+    daysUntilStockout === Infinity
+      ? 365 // No reorder needed — set far future date
+      : Math.max(0, daysUntilStockout - leadTimeDays);
   const reorderDate = new Date();
   reorderDate.setDate(reorderDate.getDate() + reorderDays);
 
@@ -148,6 +148,6 @@ export function forecastProduct(
  */
 export function forecastAll(products: Product[], salesData: SalesData[]): ForecastResult[] {
   return products
-    .map(p => forecastProduct(p, salesData, 5, products))
+    .map((p) => forecastProduct(p, salesData, 5, products))
     .sort((a, b) => a.daysUntilStockout - b.daysUntilStockout);
 }

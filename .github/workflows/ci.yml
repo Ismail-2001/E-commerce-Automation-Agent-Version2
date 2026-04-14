@@ -24,13 +24,13 @@ jobs:
         run: npm ci
 
       - name: Run ESLint
-        run: npm run lint || true
+        run: npm run lint
 
       - name: Run TypeScript type check
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
       - name: Run tests
-        run: npm run test -- --run || true
+        run: npm run test:run
 
       - name: Build production bundle
         run: npm run build

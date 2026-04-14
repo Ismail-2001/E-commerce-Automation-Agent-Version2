@@ -31,12 +31,18 @@ const LoadingFallback: React.FC = () => (
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>('dashboard');
   const { user, merchant, loading: authLoading, initialize } = useAuthStore();
-  const { fetchAll, subscribeRealtime, unsubscribeRealtime, loadMockData, loading: dataLoading } = useDataStore();
+  const {
+    fetchAll,
+    subscribeRealtime,
+    unsubscribeRealtime,
+    loadMockData,
+    loading: dataLoading,
+  } = useDataStore();
 
   // Initialize auth on mount
   useEffect(() => {
     initialize();
-  }, []);
+  }, [initialize]);
 
   // When authenticated with a merchant, fetch live data + subscribe to realtime
   useEffect(() => {
@@ -48,7 +54,7 @@ const App: React.FC = () => {
       // No auth — load mock data so the demo still works if Supabase isn't configured
       loadMockData();
     }
-  }, [user, merchant, authLoading]);
+  }, [user, merchant, authLoading, fetchAll, loadMockData, subscribeRealtime, unsubscribeRealtime]);
 
   // Show loading spinner during auth initialization
   if (authLoading) {
@@ -89,13 +95,29 @@ const App: React.FC = () => {
       case 'agent-recovery':
         return <RecoveryAgent />;
       case 'image-analysis':
-        return <Suspense fallback={<LoadingFallback />}><ImageAnalysis /></Suspense>;
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <ImageAnalysis />
+          </Suspense>
+        );
       case 'forecasting':
-        return <Suspense fallback={<LoadingFallback />}><Forecasting /></Suspense>;
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <Forecasting />
+          </Suspense>
+        );
       case 'connector':
-        return <Suspense fallback={<LoadingFallback />}><Connector /></Suspense>;
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <Connector />
+          </Suspense>
+        );
       case 'agents':
-        return <Suspense fallback={<LoadingFallback />}><AgentHub /></Suspense>;
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <AgentHub />
+          </Suspense>
+        );
       case 'settings':
         return <div className="p-10 text-center text-slate-500">Settings — Coming Soon</div>;
       default:
