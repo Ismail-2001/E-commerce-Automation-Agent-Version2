@@ -3,6 +3,7 @@ import { Package, Search, AlertTriangle, TrendingUp, RefreshCw, Zap, X, Copy, Ch
 import { Product } from '../types';
 import { analyzeInventoryItem, generateInventoryActionContent, InventoryInsight } from '../services/inventoryAgent';
 import { useDataStore } from '../stores/dataStore';
+import { rateLimiter } from '../lib/rateLimiter';
 
 const Inventory: React.FC = () => {
   const { products } = useDataStore();
@@ -30,6 +31,7 @@ const Inventory: React.FC = () => {
 
   const handleExecuteAction = async () => {
     if (!selectedProduct || !aiInsight) return;
+    if (!rateLimiter.canCall('inventory')) return;
 
     setGenerating(true);
     const content = await generateInventoryActionContent(selectedProduct, aiInsight.type);

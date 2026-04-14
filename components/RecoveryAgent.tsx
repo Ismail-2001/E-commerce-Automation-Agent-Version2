@@ -5,6 +5,7 @@ import { generateRecoveryEmail } from '../services/recoveryAgent';
 import { sendEmail, extractSubject } from '../services/emailService';
 import { useDataStore } from '../stores/dataStore';
 import { useAuthStore } from '../stores/authStore';
+import { rateLimiter } from '../lib/rateLimiter';
 
 const RecoveryAgent: React.FC = () => {
   const { carts, updateCartStatus, logActivity } = useDataStore();
@@ -16,6 +17,8 @@ const RecoveryAgent: React.FC = () => {
   const [step, setStep] = useState<'list' | 'preview'>('list');
 
   const handleStartRecovery = async (cart: Cart) => {
+    if (!rateLimiter.canCall('recovery')) return;
+
     setSelectedCart(cart);
     setStep('preview');
     setIsGenerating(true);

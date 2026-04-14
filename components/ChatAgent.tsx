@@ -1,9 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Bot, User, Sparkles, TrendingUp, Package, MessageSquare, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChatMessage, WidgetData } from '../types';
 import { getAgentResponse } from '../services/llmService';
 import { useDataStore } from '../stores/dataStore';
 import { useVoice } from '../hooks/useVoice';
+import { rateLimiter } from '../lib/rateLimiter';
 
 const ChatAgent: React.FC = () => {
   const { products, orders } = useDataStore();
@@ -12,6 +14,7 @@ const ChatAgent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [voiceMode, setVoiceMode] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const { isListening, transcript, isSupported, startListening, stopListening, speak, isSpeaking } = useVoice({
     onResult: (text) => {
@@ -23,16 +26,41 @@ const ChatAgent: React.FC = () => {
 
   const messageCounter = useRef(0);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  // Include loading indicator as a virtual row when active
+  const rowCount = messages.length + (isLoading ? 1 : 0);
+
+  const virtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => scrollContainerRef.current,
+    estimateSize: () => 80,
+    overscan: 5,
+  });
+
+  const scrollToBottom = useCallback(() => {
+    if (rowCount > 0) {
+      virtualizer.scrollToIndex(rowCount - 1, { align: 'end', behavior: 'smooth' });
+    }
+  }, [rowCount, virtualizer]);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, isLoading, scrollToBottom]);
 
   const handleSend = async (text: string = input) => {
     if (!text.trim()) return;
+
+    if (!rateLimiter.canCall('chat')) {
+      const remaining = Math.ceil(rateLimiter.getRemainingCooldown('chat') / 1000);
+      const throttleMsg: ChatMessage = {
+        id: `throttle-${Date.now()}-${++messageCounter.current}`,
+        role: 'model',
+        content: `Please wait ${remaining}s before sending another message.`,
+        timestamp: new Date(),
+        isError: true,
+      };
+      setMessages(prev => [...prev, throttleMsg]);
+      return;
+    }
 
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}-${++messageCounter.current}`,
@@ -165,7 +193,7 @@ const ChatAgent: React.FC = () => {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-slate-50/50">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto bg-slate-50/50">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-0 animate-in fade-in slide-in-from-bottom-8 duration-700">
             <div className="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center mb-6">
@@ -191,37 +219,63 @@ const ChatAgent: React.FC = () => {
             </div>
           </div>
         ) : (
-          <>
-            {messages.map((msg) => (
-              <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm
-                  ${msg.role === 'user' ? 'bg-gray-900 text-white' : 'bg-indigo-600 text-white'}`}>
-                  {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                </div>
-                <div className="max-w-[80%]">
-                  <div className={`rounded-2xl p-4 shadow-sm text-sm leading-relaxed whitespace-pre-wrap
-                    ${msg.role === 'user'
-                      ? 'bg-gray-900 text-white rounded-tr-none'
-                      : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none'
-                    } ${msg.isError ? 'bg-red-50 text-red-600 border-red-100' : ''}`}>
-                    {msg.content}
+          <div
+            style={{ height: `${virtualizer.getTotalSize()}px`, width: '100%', position: 'relative' }}
+          >
+            {virtualizer.getVirtualItems().map((virtualRow) => {
+              const isLoadingRow = virtualRow.index === messages.length;
+
+              if (isLoadingRow) {
+                return (
+                  <div
+                    key="loading"
+                    data-index={virtualRow.index}
+                    ref={virtualizer.measureElement}
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)` }}
+                    className="px-4 py-3"
+                  >
+                    <div className="flex gap-4">
+                      <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white flex-shrink-0 mt-1">
+                        <Bot className="w-4 h-4" />
+                      </div>
+                      <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-none p-4 shadow-sm flex items-center gap-2">
+                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></span>
+                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                      </div>
+                    </div>
                   </div>
-                  {msg.role === 'model' && renderWidget(msg)}
+                );
+              }
+
+              const msg = messages[virtualRow.index];
+              return (
+                <div
+                  key={msg.id}
+                  data-index={virtualRow.index}
+                  ref={virtualizer.measureElement}
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)` }}
+                  className="px-4 py-3"
+                >
+                  <div className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm
+                      ${msg.role === 'user' ? 'bg-gray-900 text-white' : 'bg-indigo-600 text-white'}`}>
+                      {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                    </div>
+                    <div className="max-w-[80%]">
+                      <div className={`rounded-2xl p-4 shadow-sm text-sm leading-relaxed whitespace-pre-wrap
+                        ${msg.role === 'user'
+                          ? 'bg-gray-900 text-white rounded-tr-none'
+                          : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none'
+                        } ${msg.isError ? 'bg-red-50 text-red-600 border-red-100' : ''}`}>
+                        {msg.content}
+                      </div>
+                      {msg.role === 'model' && renderWidget(msg)}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </>
-        )}
-        {isLoading && (
-          <div className="flex gap-4">
-            <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white flex-shrink-0 mt-1">
-              <Bot className="w-4 h-4" />
-            </div>
-            <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-none p-4 shadow-sm flex items-center gap-2">
-              <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></span>
-              <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-              <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
-            </div>
+              );
+            })}
           </div>
         )}
         <div ref={messagesEndRef} />

@@ -9,6 +9,7 @@ import { analyzePricing, PricingRecommendation } from '../services/pricingAgent'
 import { analyzeSupplierNeeds, generateNegotiationEmail, SupplierRecommendation } from '../services/supplierAgent';
 import { generateCampaignBriefs, generateAICopy, MarketingCampaign } from '../services/marketingAgent';
 import type { Product, SalesData } from '../types';
+import { rateLimiter } from '../lib/rateLimiter';
 
 type ActiveAgent = 'pricing' | 'supplier' | 'marketing' | 'overview';
 
@@ -214,6 +215,8 @@ const SupplierPanel: React.FC<{ products: Product[] }> = ({ products }) => {
   const [copied, setCopied] = useState(false);
 
   const handleGenerateEmail = async (rec: SupplierRecommendation) => {
+    if (!rateLimiter.canCall('supplier')) return;
+
     setExpandedId(rec.productId);
     setGenerating(true);
     setEmailContent('');
@@ -307,6 +310,8 @@ const MarketingPanel: React.FC<{ products: Product[] }> = ({ products }) => {
   const [selectedPlatform, setSelectedPlatform] = useState('Instagram');
 
   const handleGenerateCopy = async (product: Product, platform: string) => {
+    if (!rateLimiter.canCall('marketing')) return;
+
     setGenerating(true);
     setAiCopy('');
     const copy = await generateAICopy(product, platform);

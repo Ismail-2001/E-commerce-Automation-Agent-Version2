@@ -53,15 +53,40 @@ function ema(data: number[], alpha: number = 0.3): number[] {
 }
 
 /**
- * Generates demand forecast for a single product based on sales velocity.
+ * Computes a per-product velocity weight based on price share and stock level.
+ * Products with higher prices capture more revenue share; low-stock products
+ * get a boost (they likely sell faster, hence low stock).
+ */
+function productVelocityWeight(product: Product, allProducts: Product[]): number {
+  const totalPrice = allProducts.reduce((sum, p) => sum + p.price, 0);
+  const priceShare = totalPrice > 0 ? product.price / totalPrice : 1 / allProducts.length;
+
+  // Stock turnover signal: lower stock relative to median = higher velocity
+  const stocks = allProducts.map(p => p.stock).sort((a, b) => a - b);
+  const medianStock = stocks[Math.floor(stocks.length / 2)] || 1;
+  const stockFactor = medianStock > 0
+    ? Math.min(2, Math.max(0.5, medianStock / Math.max(product.stock, 1)))
+    : 1;
+
+  // Combine: price share * stock turnover factor, normalized so weights sum ≈ 1
+  return priceShare * stockFactor;
+}
+
+/**
+ * Generates demand forecast for a single product based on per-product sales velocity.
  */
 export function forecastProduct(
   product: Product,
   salesData: SalesData[],
-  leadTimeDays: number = 5
+  leadTimeDays: number = 5,
+  allProducts?: Product[]
 ): ForecastResult {
-  const salesValues = salesData.map(s => s.sales);
-  const revenueValues = salesData.map(s => s.revenue);
+  // Per-product velocity weighting (falls back to uniform if no product list)
+  const weight = allProducts && allProducts.length > 1
+    ? productVelocityWeight(product, allProducts)
+    : 1;
+
+  const salesValues = salesData.map(s => Math.max(0, s.sales * weight));
 
   const { slope, intercept, r2 } = linearRegression(salesValues);
   const smoothed = ema(salesValues);
@@ -123,6 +148,6 @@ export function forecastProduct(
  */
 export function forecastAll(products: Product[], salesData: SalesData[]): ForecastResult[] {
   return products
-    .map(p => forecastProduct(p, salesData))
+    .map(p => forecastProduct(p, salesData, 5, products))
     .sort((a, b) => a.daysUntilStockout - b.daysUntilStockout);
 }

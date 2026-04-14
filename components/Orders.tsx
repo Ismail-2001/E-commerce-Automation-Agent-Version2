@@ -3,6 +3,7 @@ import { ShoppingBag, Search, ClipboardCheck, Truck, RotateCcw, Star, X, Check, 
 import { Order } from '../types';
 import { analyzeOrder, generateOrderActionContent, OrderInsight } from '../services/orderAgent';
 import { useDataStore } from '../stores/dataStore';
+import { rateLimiter } from '../lib/rateLimiter';
 
 const Orders: React.FC = () => {
   const { orders } = useDataStore();
@@ -30,6 +31,7 @@ const Orders: React.FC = () => {
 
   const handleExecuteAction = async () => {
     if (!selectedOrder || !aiInsight) return;
+    if (!rateLimiter.canCall('orders')) return;
 
     setGenerating(true);
     const content = await generateOrderActionContent(selectedOrder, aiInsight.type);
