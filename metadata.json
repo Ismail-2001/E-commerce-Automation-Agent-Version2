@@ -1,0 +1,8 @@
+{
+  "name": "Copy of E-Com AutoAgent",
+  "description": "An intelligent e-commerce automation agent dashboard powered by Gemini. Features inventory management, sales analytics, and an AI assistant for insights and support.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
