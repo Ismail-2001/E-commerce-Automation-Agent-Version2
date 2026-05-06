@@ -166,7 +166,8 @@ const Dashboard: React.FC = () => {
 
           <p className="text-zinc-400 text-xl font-medium max-w-2xl leading-relaxed">
             Autonomous agents have processed <span className="text-white font-black">{orders.length} events</span> today. 
-            Revenue efficiency is currently <span className="text-ios-green font-black">+{recoveryRate}% above baseline</span>.
+            Revenue efficiency is currently <span className="text-ios-green font-black">+{recoveryRate}% above baseline</span>, 
+            recovering <span className="text-white font-black">${(recoveredCarts.reduce((acc, c) => acc + c.totalValue, 0)).toLocaleString()}</span> in pending capital.
           </p>
 
           <div className="flex flex-wrap gap-4 pt-4">
