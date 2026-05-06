@@ -67,8 +67,8 @@ const Inventory: React.FC = () => {
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Stock Commander</h1>
-          <p className="text-slate-500 dark:text-zinc-400 font-medium">Manage and optimize your inventory with AI.</p>
+          <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">Stock <span className="text-ios-orange">Commander</span></h1>
+          <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] mt-2">AI-Powered Inventory Intelligence</p>
         </div>
         <div className="relative w-full md:w-80">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />

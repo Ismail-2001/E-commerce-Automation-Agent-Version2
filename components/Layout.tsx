@@ -176,7 +176,7 @@ const Layout: React.FC<LayoutProps> = ({ currentView, onNavigate, children }) =>
       </header>
 
       {/* Mobile Tab Bar (iOS Style) */}
-      <nav className="lg:hidden ios-tab-bar">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-white/80 dark:bg-black/80 backdrop-blur-2xl border-t border-black/5 dark:border-white/10 flex justify-around items-center px-4 pb-4 z-50">
         {mainNavItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentView === item.id;

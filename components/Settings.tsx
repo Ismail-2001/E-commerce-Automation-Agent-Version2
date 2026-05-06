@@ -19,8 +19,8 @@ const Settings: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto pb-20">
       <div className="mb-10 px-2">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">System Settings</h1>
-        <p className="text-slate-500 dark:text-zinc-400 font-medium">Configure your autonomous agency and store integrations.</p>
+        <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">System <span className="text-ios-blue">Settings</span></h1>
+        <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] mt-2">Agent Configuration & Store Integrations</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-10">

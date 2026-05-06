@@ -74,8 +74,8 @@ const AgentHub: React.FC = () => {
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Intelligence Hub</h1>
-          <p className="text-slate-500 dark:text-zinc-400 font-medium">Coordinate your autonomous agency.</p>
+          <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">Intelligence <span className="text-ios-pink">Hub</span></h1>
+          <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] mt-2">Multi-Agent Command Center</p>
         </div>
         <div className="ios-glass p-1 rounded-2xl flex gap-1 border border-black/5 dark:border-white/5 shadow-sm">
           <button 

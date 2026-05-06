@@ -67,8 +67,8 @@ const RecoveryAgent: React.FC = () => {
     <div className="space-y-8 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Recovery Intelligence</h1>
-          <p className="text-slate-500 dark:text-zinc-400 font-medium">Re-engage customers with autonomous sequences.</p>
+          <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">Recovery <span className="text-ios-blue">Intelligence</span></h1>
+          <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] mt-2">Autonomous Revenue Recapture</p>
         </div>
         <div className="ios-glass px-6 py-4 rounded-[2rem] flex items-center gap-4 border border-black/5 dark:border-white/5 shadow-sm">
           <div className="w-10 h-10 bg-ios-green/10 rounded-xl flex items-center justify-center">
