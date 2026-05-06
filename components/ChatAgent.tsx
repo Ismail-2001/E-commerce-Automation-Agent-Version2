@@ -11,6 +11,8 @@ import {
   MicOff,
   Volume2,
   VolumeX,
+  ChevronRight,
+  Zap,
 } from 'lucide-react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChatMessage, WidgetData } from '../types';
@@ -18,6 +20,7 @@ import { getAgentResponse } from '../services/llmService';
 import { useDataStore } from '../stores/dataStore';
 import { useVoice } from '../hooks/useVoice';
 import { rateLimiter } from '../lib/rateLimiter';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const ChatAgent: React.FC = () => {
   const { products, orders } = useDataStore();
@@ -164,85 +167,82 @@ const ChatAgent: React.FC = () => {
     if (msg.widget === 'product_card' && msg.widgetData && 'name' in msg.widgetData) {
       const p = msg.widgetData as import('../types').ProductWidgetData;
       return (
-        <div className="mt-3 p-3 bg-white border border-gray-200 rounded-xl shadow-sm flex items-center gap-4 max-w-sm">
-          <div className="w-12 h-12 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 p-4 bg-white dark:bg-zinc-900 rounded-[1.5rem] border border-black/5 dark:border-white/5 shadow-sm flex items-center gap-4 max-w-sm group cursor-pointer hover:shadow-md transition-all">
+          <div className="w-14 h-14 bg-slate-100 dark:bg-zinc-800 rounded-xl overflow-hidden shadow-inner">
             <img
               src={p.image || 'https://via.placeholder.com/50'}
               alt={p.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold text-gray-900 truncate">{p.name || 'Unknown Product'}</h4>
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <span>Stock: {p.stock ?? 0}</span>
-              <span className="font-bold text-indigo-600">${p.price ?? 0}</span>
+            <h4 className="font-bold text-slate-900 dark:text-white truncate">{p.name || 'Unknown Product'}</h4>
+            <div className="flex items-center gap-3 mt-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Stock: {p.stock ?? 0}</span>
+              <span className="text-xs font-black text-ios-blue">${p.price ?? 0}</span>
             </div>
           </div>
-          <button className="px-3 py-1.5 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg hover:bg-indigo-200 transition-colors">
-            Restock
-          </button>
-        </div>
+          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
+        </motion.div>
       );
     }
     return null;
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="bg-white border-b border-gray-100 p-4 flex items-center gap-3 shadow-sm z-10">
-        <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white shadow-indigo-200 shadow-lg">
-          <Bot className="w-6 h-6" />
-        </div>
-        <div>
-          <h2 className="font-bold text-gray-900">AutoAgent Command Center</h2>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-            </span>
-            <span className="text-gray-500 font-medium">DeepSeek V3 Active</span>
+    <div className="flex flex-col h-[calc(100vh-8rem)] ios-card !p-0 overflow-hidden shadow-2xl border-none">
+      {/* iOS Header */}
+      <div className="ios-glass p-5 flex items-center gap-4 z-20">
+        <div className="relative">
+          <div className="w-12 h-12 bg-ios-blue rounded-2xl flex items-center justify-center text-white shadow-lg shadow-ios-blue/30 ring-4 ring-ios-blue/10">
+            <Bot className="w-7 h-7" />
           </div>
+          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-ios-green rounded-full border-4 border-white dark:border-zinc-900" />
+        </div>
+        <div className="flex-1">
+          <h2 className="font-bold text-slate-900 dark:text-white text-lg tracking-tight">AutoAgent AI</h2>
+          <p className="text-[10px] font-black text-ios-blue uppercase tracking-[0.2em]">Apple Intelligence Engine</p>
         </div>
 
-        {/* Voice Mode Toggle */}
         {isSupported && (
           <button
             onClick={() => setVoiceMode(!voiceMode)}
-            className={`ml-auto px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+            className={`p-3 rounded-full transition-all ${
               voiceMode
-                ? 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200'
-                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                ? 'bg-ios-blue text-white shadow-lg shadow-ios-blue/20'
+                : 'bg-black/5 dark:bg-white/5 text-slate-400 hover:text-slate-600 dark:hover:text-white'
             }`}
           >
-            {voiceMode ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-            Voice {voiceMode ? 'On' : 'Off'}
+            {voiceMode ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
           </button>
         )}
       </div>
 
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto bg-slate-50/50">
+      {/* Messages Area */}
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto bg-slate-50/50 dark:bg-black/20 scrollbar-hide">
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center p-8 opacity-0 animate-in fade-in slide-in-from-bottom-8 duration-700">
-            <div className="w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center mb-6">
-              <Sparkles className="w-10 h-10 text-indigo-600" />
+          <div className="h-full flex flex-col items-center justify-center text-center p-10">
+            <div className="w-24 h-24 bg-ios-blue/10 rounded-[2.5rem] flex items-center justify-center mb-8 animate-pulse">
+              <Sparkles className="w-12 h-12 text-ios-blue" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">How can I help you grow?</h3>
-            <p className="text-gray-500 max-w-md mb-8">
-              I&apos;m connected to your inventory and sales data. Ask me anything about your
-              business performance.
+            <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-3 tracking-tight">How can I help you?</h3>
+            <p className="text-slate-400 dark:text-zinc-500 max-w-xs mb-10 font-medium">
+              I have full access to your Shopify store. Ask me to analyze sales or draft emails.
             </p>
-            <div className="grid gap-3 w-full max-w-lg">
+            <div className="grid gap-3 w-full max-w-sm">
               {suggestions.map((s, i) => (
                 <button
                   key={i}
                   onClick={() => handleSend(s.text)}
-                  className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-xl hover:border-indigo-300 hover:shadow-md hover:text-indigo-600 transition-all text-left text-gray-700 font-medium group"
+                  className="flex items-center justify-between p-4 bg-white dark:bg-zinc-900 rounded-2xl border border-black/5 dark:border-white/5 hover:scale-[1.02] active:scale-[0.98] transition-all group"
                 >
-                  <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-indigo-50 transition-colors">
-                    {s.icon}
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-ios-blue/5 rounded-xl group-hover:bg-ios-blue/10 transition-colors">
+                      {React.cloneElement(s.icon as React.ReactElement, { className: 'w-4 h-4 text-ios-blue' })}
+                    </div>
+                    <span className="text-sm font-bold text-slate-600 dark:text-zinc-300">{s.text}</span>
                   </div>
-                  {s.text}
+                  <ChevronRight className="w-4 h-4 text-slate-300" />
                 </button>
               ))}
             </div>
@@ -254,6 +254,7 @@ const ChatAgent: React.FC = () => {
               width: '100%',
               position: 'relative',
             }}
+            className="p-6"
           >
             {virtualizer.getVirtualItems().map((virtualRow) => {
               const isLoadingRow = virtualRow.index === messages.length;
@@ -271,23 +272,22 @@ const ChatAgent: React.FC = () => {
                       width: '100%',
                       transform: `translateY(${virtualRow.start}px)`,
                     }}
-                    className="px-4 py-3"
+                    className="flex items-end gap-3 mb-4"
                   >
-                    <div className="flex gap-4">
-                      <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white flex-shrink-0 mt-1">
-                        <Bot className="w-4 h-4" />
-                      </div>
-                      <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-none p-4 shadow-sm flex items-center gap-2">
-                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></span>
-                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                        <span className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
-                      </div>
+                    <div className="w-8 h-8 rounded-xl bg-ios-blue flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+                      <Bot className="w-4 h-4" />
+                    </div>
+                    <div className="bg-white dark:bg-zinc-800 rounded-2xl p-3 px-4 shadow-sm flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 bg-ios-blue/40 rounded-full animate-bounce"></span>
+                      <span className="w-1.5 h-1.5 bg-ios-blue/60 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                      <span className="w-1.5 h-1.5 bg-ios-blue rounded-full animate-bounce [animation-delay:0.4s]"></span>
                     </div>
                   </div>
                 );
               }
 
               const msg = messages[virtualRow.index];
+              const isUser = msg.role === 'user';
               return (
                 <div
                   key={msg.id}
@@ -300,31 +300,26 @@ const ChatAgent: React.FC = () => {
                     width: '100%',
                     transform: `translateY(${virtualRow.start}px)`,
                   }}
-                  className="px-4 py-3"
+                  className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 px-2`}
                 >
-                  <div className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm
-                      ${msg.role === 'user' ? 'bg-gray-900 text-white' : 'bg-indigo-600 text-white'}`}
-                    >
-                      {msg.role === 'user' ? (
-                        <User className="w-4 h-4" />
-                      ) : (
+                  <div className={`flex gap-3 max-w-[90%] ${isUser ? 'flex-row-reverse' : ''}`}>
+                    {!isUser && (
+                      <div className="w-8 h-8 rounded-xl bg-white dark:bg-zinc-800 flex items-center justify-center text-ios-blue flex-shrink-0 shadow-sm border border-black/5 dark:border-white/5">
                         <Bot className="w-4 h-4" />
-                      )}
-                    </div>
-                    <div className="max-w-[80%]">
+                      </div>
+                    )}
+                    <div className={isUser ? 'text-right' : 'text-left'}>
                       <div
-                        className={`rounded-2xl p-4 shadow-sm text-sm leading-relaxed whitespace-pre-wrap
+                        className={`inline-block px-5 py-3 rounded-2xl text-[15px] leading-relaxed shadow-sm font-medium
                         ${
-                          msg.role === 'user'
-                            ? 'bg-gray-900 text-white rounded-tr-none'
-                            : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none'
-                        } ${msg.isError ? 'bg-red-50 text-red-600 border-red-100' : ''}`}
+                          isUser
+                            ? 'bg-ios-blue text-white rounded-tr-[4px]'
+                            : 'bg-white dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 border border-black/5 dark:border-white/5 rounded-tl-[4px]'
+                        } ${msg.isError ? 'bg-ios-red/10 text-ios-red border-ios-red/20' : ''}`}
                       >
                         {msg.content}
                       </div>
-                      {msg.role === 'model' && renderWidget(msg)}
+                      {!isUser && renderWidget(msg)}
                     </div>
                   </div>
                 </div>
@@ -335,43 +330,42 @@ const ChatAgent: React.FC = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 bg-white border-t border-gray-100">
-        <div className="relative max-w-4xl mx-auto flex items-end gap-2 bg-gray-50 p-2 rounded-2xl border border-gray-200 focus-within:ring-2 focus-within:ring-indigo-100 focus-within:border-indigo-300 transition-all shadow-sm">
+      {/* iOS Input Area */}
+      <div className="p-6 ios-glass border-t border-black/5 dark:border-white/5">
+        <div className="relative max-w-4xl mx-auto flex items-end gap-3 bg-white dark:bg-zinc-900 p-2 rounded-2xl border border-black/5 dark:border-white/5 shadow-inner-lg focus-within:ring-2 focus-within:ring-ios-blue transition-all duration-300">
           <textarea
             value={isListening ? transcript : input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={isListening ? 'Listening...' : 'Ask AutoAgent anything...'}
-            className={`flex-1 bg-transparent border-none focus:ring-0 p-3 max-h-32 min-h-[50px] resize-none text-gray-800 placeholder-gray-400 ${isListening ? 'text-indigo-600' : ''}`}
+            placeholder={isListening ? 'Listening...' : 'Type a message...'}
+            className={`flex-1 bg-transparent border-none focus:ring-0 p-3 max-h-32 min-h-[48px] resize-none text-slate-800 dark:text-zinc-200 placeholder-slate-400 font-medium ${isListening ? 'text-ios-blue animate-pulse' : ''}`}
             rows={1}
             readOnly={isListening}
           />
 
-          {/* Mic Button */}
-          {isSupported && (
-            <button
-              onClick={isListening ? stopListening : startListening}
-              className={`p-3 rounded-xl transition-all shadow-sm mb-0.5 ${
-                isListening
-                  ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-              }`}
-            >
-              {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-            </button>
-          )}
+          <div className="flex items-center gap-2 pr-1 pb-1">
+            {isSupported && (
+              <button
+                onClick={isListening ? stopListening : startListening}
+                className={`p-2 rounded-xl transition-all ${
+                  isListening
+                    ? 'bg-ios-red text-white shadow-lg animate-pulse'
+                    : 'text-slate-400 hover:text-ios-blue hover:bg-ios-blue/5'
+                }`}
+              >
+                {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </button>
+            )}
 
-          <button
-            onClick={() => handleSend()}
-            disabled={isLoading || (!input.trim() && !isListening)}
-            className="p-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 text-white rounded-xl transition-all shadow-sm mb-0.5"
-          >
-            <Send className="w-5 h-5" />
-          </button>
+            <button
+              onClick={() => handleSend()}
+              disabled={isLoading || (!input.trim() && !isListening)}
+              className="p-2.5 bg-ios-blue hover:opacity-90 disabled:opacity-30 text-white rounded-xl shadow-lg shadow-ios-blue/20 transition-all flex items-center justify-center active:scale-90"
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </div>
         </div>
-        <p className="text-center text-xs text-gray-400 mt-2">
-          AI can make mistakes. Please check important information.
-        </p>
       </div>
     </div>
   );

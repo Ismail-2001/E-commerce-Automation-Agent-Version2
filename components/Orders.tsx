@@ -11,12 +11,14 @@ import {
   Copy,
   Zap,
   RefreshCw,
+  ChevronRight,
 } from 'lucide-react';
 import { Order } from '../types';
 import { analyzeOrder, generateOrderActionContent, OrderInsight } from '../services/orderAgent';
 import { useDataStore } from '../stores/dataStore';
 import { rateLimiter } from '../lib/rateLimiter';
 import { LoadingSpinner, EmptyState, ErrorBanner } from './StatusStates';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Orders: React.FC = () => {
   const { orders, loading: storeLoading } = useDataStore();
@@ -68,18 +70,18 @@ const Orders: React.FC = () => {
 
   if (storeLoading) return <LoadingSpinner message="Loading orders..." />;
 
-  const getStatusColor = (status: string) => {
+  const getStatusStyle = (status: string) => {
     switch (status) {
       case 'Shipped':
-        return 'bg-blue-100 text-blue-700';
+        return 'bg-ios-blue/10 text-ios-blue';
       case 'Delivered':
-        return 'bg-green-100 text-green-700';
+        return 'bg-ios-green/10 text-ios-green';
       case 'Pending':
-        return 'bg-amber-100 text-amber-700';
+        return 'bg-ios-orange/10 text-ios-orange';
       case 'Returned':
-        return 'bg-rose-100 text-rose-700';
+        return 'bg-ios-red/10 text-ios-red';
       default:
-        return 'bg-gray-100 text-gray-700';
+        return 'bg-slate-100 text-slate-500';
     }
   };
 
@@ -99,80 +101,92 @@ const Orders: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 pb-20">
       {error && <ErrorBanner message={error} onDismiss={() => setError(null)} />}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Smart Order Processor</h1>
-          <p className="text-gray-500">AI-powered fulfillment and customer service.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Order Intelligence</h1>
+          <p className="text-slate-500 dark:text-zinc-400 font-medium">Smart fulfillment and proactive support.</p>
         </div>
-        <div className="relative w-full md:w-64">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <div className="relative w-full md:w-80">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
           <input
             type="text"
             placeholder="Search orders..."
-            className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+            className="w-full pl-11 pr-4 py-3 bg-white dark:bg-zinc-900 rounded-2xl border border-black/5 dark:border-white/5 focus:ring-2 focus:ring-ios-blue focus:border-transparent transition-all shadow-sm"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-4">
           {filteredOrders.length === 0 && (
             <EmptyState
               title="No orders found"
-              subtitle={
-                searchTerm ? 'Try a different search term.' : 'Orders will appear here once placed.'
-              }
+              subtitle={searchTerm ? 'Try a different search term.' : 'Orders will appear here once placed.'}
             />
           )}
-          {filteredOrders.map((order) => (
-            <div
-              key={order.id}
-              onClick={() => handleAnalyze(order)}
-              className={`bg-white p-5 rounded-xl border border-gray-200 cursor-pointer hover:shadow-md transition-all flex items-center gap-4 group
-                ${selectedOrder?.id === order.id ? 'ring-2 ring-indigo-500 border-transparent' : ''}`}
-            >
-              <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center ${getStatusColor(order.status)} bg-opacity-20`}
+          <AnimatePresence>
+            {filteredOrders.map((order, index) => (
+              <motion.div
+                key={order.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                onClick={() => handleAnalyze(order)}
+                className={`ios-card ios-card-hover group flex items-center gap-5 p-5
+                  ${selectedOrder?.id === order.id ? 'ring-2 ring-ios-blue shadow-lg shadow-ios-blue/10' : ''}`}
               >
-                {getStatusIcon(order.status)}
-              </div>
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${getStatusStyle(order.status)} transition-transform group-hover:scale-110`}>
+                  {getStatusIcon(order.status)}
+                </div>
 
-              <div className="flex-1">
-                <div className="flex justify-between mb-1">
-                  <h3 className="font-semibold text-gray-900">{order.customerName}</h3>
-                  <span className="font-bold text-gray-900">${order.total.toFixed(2)}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start mb-1">
+                    <h3 className="font-bold text-slate-900 dark:text-white text-lg truncate group-hover:text-ios-blue transition-colors">
+                      {order.customerName}
+                    </h3>
+                    <span className="font-bold text-slate-900 dark:text-white text-lg tracking-tight">
+                      ${order.total.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest mt-1">
+                    <span>
+                      {order.id} • {order.items} items
+                    </span>
+                    <span>{order.date}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between text-sm text-gray-500">
-                  <span>
-                    {order.id} • {order.items} items
-                  </span>
-                  <span>{order.date}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+                <ChevronRight className="w-5 h-5 text-slate-300 group-hover:translate-x-1 transition-transform" />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
 
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-lg h-[600px] flex flex-col sticky top-6">
+          <div className="ios-card !p-0 sticky top-10 overflow-hidden min-h-[500px] flex flex-col">
             {!selectedOrder ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-gray-400">
-                <ShoppingBag className="w-16 h-16 mb-4 text-indigo-100" />
-                <p className="font-medium">Select an order to analyze</p>
+              <div className="flex-1 flex flex-col items-center justify-center text-center p-10 space-y-6">
+                <div className="w-20 h-20 bg-ios-blue/10 rounded-[2rem] flex items-center justify-center">
+                  <ShoppingBag className="w-10 h-10 text-ios-blue" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-900 dark:text-white text-lg">Analysis Engine Ready</p>
+                  <p className="text-sm text-slate-400 dark:text-zinc-500 mt-2">
+                    Select an order to analyze customer history and sentiment.
+                  </p>
+                </div>
               </div>
             ) : (
               <>
-                <div className="p-4 border-b border-gray-100 flex justify-between items-start bg-gray-50 rounded-t-xl">
+                <div className="p-6 ios-glass dark:border-white/5 flex justify-between items-center">
                   <div>
-                    <h2 className="font-bold text-gray-900">Order Analysis</h2>
+                    <h2 className="font-bold text-slate-900 dark:text-white text-xl truncate max-w-[200px]">{selectedOrder.customerName}</h2>
                     <div className="flex items-center gap-2 mt-1">
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 font-medium ${getStatusColor(selectedOrder.status)}`}
-                      >
+                      <span className={`text-[10px] px-2.5 py-1 rounded-full flex items-center gap-1.5 font-black uppercase tracking-widest ${getStatusStyle(selectedOrder.status)}`}>
                         {getStatusIcon(selectedOrder.status)}
                         {selectedOrder.status}
                       </span>
@@ -180,48 +194,62 @@ const Orders: React.FC = () => {
                   </div>
                   <button
                     onClick={() => setSelectedOrder(null)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="p-2 bg-black/5 dark:bg-white/5 rounded-full text-slate-500 hover:text-ios-red transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="flex-1 p-6 overflow-y-auto">
+                <div className="flex-1 p-6 space-y-8 overflow-y-auto">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-slate-50 dark:bg-zinc-900 rounded-[1.5rem] border border-black/5 dark:border-white/5">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Items</p>
+                      <p className="text-xl font-bold text-slate-900 dark:text-white">{selectedOrder.items} SKU(s)</p>
+                    </div>
+                    <div className="p-4 bg-slate-50 dark:bg-zinc-900 rounded-[1.5rem] border border-black/5 dark:border-white/5">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Order Value</p>
+                      <p className="text-xl font-bold text-ios-blue">${selectedOrder.total.toFixed(2)}</p>
+                    </div>
+                  </div>
+
                   {loading ? (
-                    <div className="h-full flex flex-col items-center justify-center space-y-3">
-                      <RefreshCw className="w-8 h-8 text-indigo-600 animate-spin" />
-                      <span className="text-sm font-medium text-gray-500 animate-pulse">
-                        Analyzing customer history...
+                    <div className="flex flex-col items-center justify-center space-y-4 py-10">
+                      <RefreshCw className="w-8 h-8 text-ios-blue animate-spin" />
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">
+                        Analyzing Customer Sentiment...
                       </span>
                     </div>
                   ) : aiInsight ? (
-                    <div className="space-y-6">
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                       <div
-                        className={`p-4 rounded-xl border-l-4 ${
+                        className={`p-5 rounded-[2rem] border ${
                           aiInsight.type === 'return_risk'
-                            ? 'bg-rose-50 border-rose-500'
+                            ? 'bg-ios-red/5 border-ios-red/20'
                             : aiInsight.type === 'vip'
-                              ? 'bg-purple-50 border-purple-500'
+                              ? 'bg-ios-purple/5 border-ios-purple/20'
                               : aiInsight.type === 'pending'
-                                ? 'bg-amber-50 border-amber-500'
-                                : 'bg-green-50 border-green-500'
+                                ? 'bg-ios-orange/5 border-ios-orange/20'
+                                : 'bg-ios-green/5 border-ios-green/20'
                         }`}
                       >
-                        <div className="flex items-start gap-3">
-                          {aiInsight.type === 'vip' && (
-                            <Star className="w-5 h-5 text-purple-600 mt-0.5" />
-                          )}
-                          {aiInsight.type === 'return_risk' && (
-                            <RotateCcw className="w-5 h-5 text-rose-600 mt-0.5" />
-                          )}
-                          {aiInsight.type === 'ok' && (
-                            <Check className="w-5 h-5 text-green-600 mt-0.5" />
-                          )}
+                        <div className="flex items-start gap-4">
+                          <div className={`p-2 rounded-xl mt-1 ${
+                            aiInsight.type === 'vip' ? 'bg-ios-purple/10 text-ios-purple' : 
+                            aiInsight.type === 'return_risk' ? 'bg-ios-red/10 text-ios-red' : 
+                            aiInsight.type === 'pending' ? 'bg-ios-orange/10 text-ios-orange' : 'bg-ios-green/10 text-ios-green'
+                          }`}>
+                            {aiInsight.type === 'vip' ? <Star className="w-5 h-5" /> : 
+                             aiInsight.type === 'return_risk' ? <RotateCcw className="w-5 h-5" /> : <Check className="w-5 h-5" />}
+                          </div>
                           <div>
-                            <h3 className="text-sm font-bold uppercase tracking-wide mb-1 text-gray-800">
-                              {aiInsight.type.split('_').join(' ')}
+                            <h3 className={`text-xs font-black uppercase tracking-[0.15em] mb-2 ${
+                                aiInsight.type === 'vip' ? 'text-ios-purple' : 
+                                aiInsight.type === 'return_risk' ? 'text-ios-red' : 
+                                aiInsight.type === 'pending' ? 'text-ios-orange' : 'text-ios-green'
+                              }`}>
+                              {aiInsight.type.split('_').join(' ')} Profile
                             </h3>
-                            <p className="text-sm text-gray-700 leading-relaxed">
+                            <p className="text-sm text-slate-700 dark:text-zinc-300 leading-relaxed font-medium">
                               {aiInsight.message}
                             </p>
                           </div>
@@ -229,35 +257,37 @@ const Orders: React.FC = () => {
                       </div>
 
                       {aiInsight.type !== 'ok' && (
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <button
                             onClick={handleExecuteAction}
-                            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-all shadow-indigo-200 shadow-lg"
+                            className="ios-btn-primary w-full py-4 text-sm"
                             disabled={generating}
                           >
                             {generating ? (
                               <RefreshCw className="w-4 h-4 animate-spin" />
                             ) : (
-                              <Zap className="w-4 h-4 fill-current" />
+                              <Zap className="w-5 h-5" />
                             )}
-                            {generating ? 'Generating Draft...' : aiInsight.action}
+                            {generating ? 'Drafting Intelligence...' : aiInsight.action}
                           </button>
 
-                          {actionContent && (
-                            <div className="mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                              <div className="bg-slate-50 rounded-lg p-3 border border-slate-200 text-sm text-slate-700 whitespace-pre-line max-h-48 overflow-y-auto">
-                                {actionContent}
-                              </div>
-                              <div className="flex justify-end mt-2">
-                                <button className="text-xs flex items-center gap-1 text-slate-500 hover:text-indigo-600">
-                                  <Copy className="w-3 h-3" /> Copy to Clipboard
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                          <AnimatePresence>
+                            {actionContent && (
+                              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-3">
+                                <div className="bg-slate-50 dark:bg-zinc-900 rounded-[1.5rem] p-4 border border-black/5 dark:border-white/5 text-sm text-slate-700 dark:text-zinc-300 whitespace-pre-line max-h-48 overflow-y-auto font-medium">
+                                  {actionContent}
+                                </div>
+                                <div className="flex justify-end">
+                                  <button className="text-xs font-bold flex items-center gap-1.5 text-ios-blue hover:opacity-70 transition-all uppercase tracking-widest">
+                                    <Copy className="w-3.5 h-3.5" /> Copy Draft
+                                  </button>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       )}
-                    </div>
+                    </motion.div>
                   ) : null}
                 </div>
               </>

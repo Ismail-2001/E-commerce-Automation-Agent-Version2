@@ -99,25 +99,27 @@ const Connector: React.FC = () => {
                 {
                   id: 'shopify' as Platform,
                   name: 'Shopify',
-                  color: 'bg-green-50 border-green-200 hover:border-green-400',
-                  icon: '🟢',
+                  color: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20 hover:border-emerald-400',
+                  icon: '🛍️',
+                  description: 'Admin API Access Token'
                 },
                 {
                   id: 'woocommerce' as Platform,
                   name: 'WooCommerce',
-                  color: 'bg-purple-50 border-purple-200 hover:border-purple-400',
-                  icon: '🟣',
+                  color: 'bg-purple-50 dark:bg-purple-500/10 border-purple-100 dark:border-purple-500/20 hover:border-purple-400',
+                  icon: '🛒',
+                  description: 'REST API Key/Secret'
                 },
               ].map((p) => (
                 <button
                   key={p.id}
                   onClick={() => setPlatform(p.id)}
-                  className={`p-8 rounded-2xl border-2 transition-all text-center ${p.color}`}
+                  className={`p-10 rounded-3xl border-2 transition-all duration-300 group ${p.color}`}
                 >
-                  <div className="text-4xl mb-3">{p.icon}</div>
-                  <div className="text-lg font-bold text-gray-900">{p.name}</div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    {p.id === 'shopify' ? 'Admin API Access Token' : 'REST API Key/Secret'}
+                  <div className="text-5xl mb-4 group-hover:scale-110 transition-transform">{p.icon}</div>
+                  <div className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{p.name}</div>
+                  <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-2">
+                    {p.description}
                   </div>
                 </button>
               ))}
@@ -126,20 +128,20 @@ const Connector: React.FC = () => {
         ) : (
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
             {/* Header */}
-            <div className="p-5 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
-              <div className="flex items-center gap-3">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-between">
+              <div className="flex items-center gap-4">
                 <div
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl ${platform === 'shopify' ? 'bg-green-100' : 'bg-purple-100'}`}
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm ${platform === 'shopify' ? 'bg-emerald-100 dark:bg-emerald-500/20' : 'bg-purple-100 dark:bg-purple-500/20'}`}
                 >
-                  {platform === 'shopify' ? '🟢' : '🟣'}
+                  {platform === 'shopify' ? '🛍️' : '🛒'}
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 capitalize">{platform} Connector</h3>
-                  {storeName && <p className="text-xs text-gray-500">{storeName}</p>}
+                  <h3 className="font-black text-slate-900 dark:text-white capitalize text-lg tracking-tight">{platform} Connector</h3>
+                  {storeName && <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">{storeName}</p>}
                 </div>
               </div>
-              <button onClick={handleReset} className="text-sm text-gray-500 hover:text-gray-700">
-                Change Platform
+              <button onClick={handleReset} className="text-sm font-bold text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                Change
               </button>
             </div>
 

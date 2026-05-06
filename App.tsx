@@ -10,8 +10,7 @@ import { ViewState } from './types';
 import { useAuthStore } from './stores/authStore';
 import { useDataStore } from './stores/dataStore';
 import { useThemeStore } from './stores/themeStore';
-import { supabaseConfigured } from './lib/supabase';
-import { Loader2, Bot } from 'lucide-react';
+import { Loader2, Bot, Sparkles } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import OnboardingWizard from './components/OnboardingWizard';
@@ -19,7 +18,7 @@ import Settings from './components/Settings';
 import LandingPage from './components/LandingPage';
 import ActivityLog from './components/ActivityLog';
 
-// Lazy-loaded heavy components (code-splitting)
+// Lazy-loaded heavy components
 const ImageAnalysis = lazy(() => import('./components/ImageAnalysis'));
 const Forecasting = lazy(() => import('./components/Forecasting'));
 const Connector = lazy(() => import('./components/Connector'));
@@ -27,11 +26,18 @@ const AgentHub = lazy(() => import('./components/AgentHub'));
 const Auth = lazy(() => import('./components/Auth'));
 
 const LoadingFallback: React.FC = () => (
-  <div className="flex items-center justify-center h-64">
-    <div className="text-center space-y-3">
-      <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mx-auto" />
-      <p className="text-sm text-gray-500">Loading...</p>
-    </div>
+  <div className="flex items-center justify-center min-h-[400px]">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="text-center space-y-6"
+    >
+      <div className="relative">
+        <Loader2 className="w-12 h-12 text-ios-blue animate-spin mx-auto opacity-20" />
+        <Bot className="w-6 h-6 text-ios-blue absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+      </div>
+      <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">Initializing Component</p>
+    </motion.div>
   </div>
 );
 
@@ -48,12 +54,10 @@ const App: React.FC = () => {
     loading: dataLoading,
   } = useDataStore();
 
-  // Initialize auth on mount
   useEffect(() => {
     initialize();
   }, [initialize]);
 
-  // Sync dark mode
   useEffect(() => {
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -62,39 +66,50 @@ const App: React.FC = () => {
     }
   }, [theme]);
 
-  // When authenticated with a merchant, fetch live data + subscribe to realtime
   useEffect(() => {
     if (user && merchant) {
       fetchAll(merchant.id);
       subscribeRealtime(merchant.id);
       return () => unsubscribeRealtime();
     } else if (!authLoading && !user) {
-      // No auth — load mock data so the demo still works if Supabase isn't configured
       loadMockData();
     }
   }, [user, merchant, authLoading, fetchAll, loadMockData, subscribeRealtime, unsubscribeRealtime]);
 
-  // Show loading spinner during auth initialization
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto shadow-xl">
-            <Bot className="w-8 h-8 text-white" />
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center relative overflow-hidden">
+        {/* Background Blur */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-ios-blue/10 rounded-full blur-[100px]" />
+        
+        <div className="text-center space-y-8 relative z-10">
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.1, 1],
+              rotate: [0, 5, -5, 0]
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="w-24 h-24 bg-white/5 backdrop-blur-2xl rounded-[2rem] flex items-center justify-center mx-auto border border-white/10 shadow-2xl"
+          >
+            <Bot className="w-12 h-12 text-white" />
+          </motion.div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-black text-white tracking-tighter">AutoAgent Core</h2>
+            <div className="flex items-center justify-center gap-3">
+              <div className="w-1 h-1 bg-ios-blue rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+              <div className="w-1 h-1 bg-ios-blue rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+              <div className="w-1 h-1 bg-ios-blue rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+            </div>
           </div>
-          <Loader2 className="w-6 h-6 text-indigo-600 animate-spin mx-auto" />
-          <p className="text-sm text-gray-500">Loading AutoAgent...</p>
         </div>
       </div>
     );
   }
 
-  // If user is unauthenticated and hasn't explicitly entered the app, show Public Landing Page
   if (!user && !isStarted) {
     return <LandingPage onEnter={() => setIsStarted(true)} />;
   }
 
-  // If user is not signed in and has started the app via landing page, show Auth screen
   if (!user) {
     return (
       <Suspense fallback={<LoadingFallback />}>
@@ -105,81 +120,59 @@ const App: React.FC = () => {
     );
   }
 
-  // Show Onboarding for authenticated users who haven't completed it
-  // Skip if we are running in non-supabase (mock) mode because onboarding 
-  // uses the state for "getting started".
   if (!onboardingCompleted) {
     return <OnboardingWizard />;
   }
 
   const renderView = () => {
     switch (currentView) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'inventory':
-        return <Inventory />;
-      case 'orders':
-        return <Orders />;
-      case 'agent':
-        return <ChatAgent />;
-      case 'agent-recovery':
-        return <RecoveryAgent />;
-      case 'image-analysis':
-        return (
-          <Suspense fallback={<LoadingFallback />}>
-            <ImageAnalysis />
-          </Suspense>
-        );
-      case 'forecasting':
-        return (
-          <Suspense fallback={<LoadingFallback />}>
-            <Forecasting />
-          </Suspense>
-        );
-      case 'connector':
-        return (
-          <Suspense fallback={<LoadingFallback />}>
-            <Connector />
-          </Suspense>
-        );
-      case 'agents':
-        return (
-          <Suspense fallback={<LoadingFallback />}>
-            <AgentHub />
-          </Suspense>
-        );
-      case 'activity-log':
-        return <ActivityLog />;
-      case 'settings':
-        return <Settings />;
-      default:
-        return <Dashboard />;
+      case 'dashboard': return <Dashboard />;
+      case 'inventory': return <Inventory />;
+      case 'orders': return <Orders />;
+      case 'agent': return <ChatAgent />;
+      case 'agent-recovery': return <RecoveryAgent />;
+      case 'image-analysis': return <Suspense fallback={<LoadingFallback />}><ImageAnalysis /></Suspense>;
+      case 'forecasting': return <Suspense fallback={<LoadingFallback />}><Forecasting /></Suspense>;
+      case 'connector': return <Suspense fallback={<LoadingFallback />}><Connector /></Suspense>;
+      case 'agents': return <Suspense fallback={<LoadingFallback />}><AgentHub /></Suspense>;
+      case 'activity-log': return <ActivityLog />;
+      case 'settings': return <Settings />;
+      default: return <Dashboard />;
     }
   };
 
   return (
     <Layout currentView={currentView} onNavigate={setCurrentView}>
       <ErrorBoundary>
-        {dataLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center space-y-3">
-              <Loader2 className="w-8 h-8 text-indigo-600 animate-spin mx-auto" />
-              <p className="text-sm text-gray-500">Loading store data...</p>
-            </div>
-          </div>
-        ) : (
-          <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait">
+          {dataLoading ? (
+            <motion.div 
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center justify-center min-h-[60vh]"
+            >
+              <div className="text-center space-y-6">
+                <div className="relative">
+                  <div className="w-16 h-16 border-4 border-ios-blue/10 border-t-ios-blue rounded-full animate-spin mx-auto" />
+                  <Sparkles className="w-6 h-6 text-ios-blue absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+                </div>
+                <p className="text-xs font-black text-slate-400 uppercase tracking-[0.4em]">Synchronizing Store Data</p>
+              </div>
+            </motion.div>
+          ) : (
             <motion.div
               key={currentView}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, y: 20, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.98 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             >
               {renderView()}
             </motion.div>
-          </AnimatePresence>
-        )}
+          )}
+        </AnimatePresence>
       </ErrorBoundary>
     </Layout>
   );

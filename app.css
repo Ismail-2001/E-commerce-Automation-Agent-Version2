@@ -2,14 +2,77 @@
 @plugin "@tailwindcss/typography";
 @custom-variant dark (&:is(.dark *));
 
-/* ─── Theme overrides ────────────────────────────────────────────── */
 @theme {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  
+  /* iOS Colors */
+  --color-ios-blue: #007AFF;
+  --color-ios-green: #34C759;
+  --color-ios-indigo: #5856D6;
+  --color-ios-orange: #FF9500;
+  --color-ios-pink: #FF2D55;
+  --color-ios-purple: #AF52DE;
+  --color-ios-red: #FF3B30;
+  --color-ios-teal: #5AC8FA;
+  --color-ios-yellow: #FFCC00;
+  
+  /* System Backgrounds */
+  --color-ios-bg-light: #F2F2F7;
+  --color-ios-bg-dark: #000000;
+  --color-ios-card-light: #FFFFFF;
+  --color-ios-card-dark: #1C1C1E;
 }
 
-/* ─── Custom utilities ───────────────────────────────────────────── */
+@layer base {
+  body {
+    @apply bg-[var(--color-ios-bg-light)] dark:bg-[var(--color-ios-bg-dark)] text-slate-900 dark:text-white antialiased selection:bg-ios-blue/30 overflow-x-hidden;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+}
 
-/* Hide scrollbar (used by chat panel) */
+@layer components {
+  .ios-glass {
+    @apply bg-white/70 dark:bg-black/60 backdrop-blur-[32px] border border-white/20 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)];
+  }
+  
+  .ios-card {
+    @apply bg-[var(--color-ios-card-light)] dark:bg-[#121214] rounded-[2.5rem] p-8 shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] border border-black/5 dark:border-white/5 transition-all duration-500;
+  }
+  
+  .ios-card-hover {
+    @apply hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)] active:scale-[0.99] cursor-pointer;
+  }
+  
+  .ios-btn-primary {
+    @apply bg-ios-blue text-white font-black rounded-2xl px-8 py-4 shadow-[0_4px_12px_rgba(0,122,255,0.3)] hover:brightness-110 active:scale-[0.96] transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-[10px];
+  }
+  
+  .ios-btn-secondary {
+    @apply bg-black/5 dark:bg-white/10 text-slate-900 dark:text-white font-black rounded-2xl px-8 py-4 hover:bg-black/10 dark:hover:bg-white/20 active:scale-[0.96] transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-[10px];
+  }
+
+  .ios-input {
+    @apply w-full bg-black/5 dark:bg-white/5 border-none rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-ios-blue outline-none transition-all;
+  }
+
+  .ios-segmented-control {
+    @apply p-1 bg-black/5 dark:bg-white/5 rounded-2xl flex backdrop-blur-xl border border-black/5 dark:border-white/5;
+  }
+}
+
+/* Animations */
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Hide scrollbar */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

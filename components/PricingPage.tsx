@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, X, Zap, Shield, ArrowRight } from 'lucide-react';
+import { Check, X, Zap, Shield, ArrowRight, Sparkles, Star, Globe } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 
 const PricingPage: React.FC<{ onSubscribe?: () => void }> = ({ onSubscribe }) => {
@@ -8,139 +8,164 @@ const PricingPage: React.FC<{ onSubscribe?: () => void }> = ({ onSubscribe }) =>
 
   const tiers = [
     {
-      name: 'Starter',
+      name: 'Core',
       price: billingCycle === 'monthly' ? 49 : 39,
-      description: 'Perfect for single stores just getting started with AI automation.',
+      description: 'Foundational AI capabilities for single-store environments.',
       features: [
-        '1 Connected Store',
-        'Email Drafts Only (Manual Send)',
-        '100 AI Actions / month',
-        'Basic Dashboard Analytics',
+        'Single Node Deployment',
+        'Email Draft Synthesis',
+        '100 Neural Actions / mo',
+        'Standard Performance Log',
       ],
-      missing: ['Auto-Pilot Mode', 'Multi-store Support', 'Custom AI Rules'],
-      cta: 'Start 14-Day Free Trial',
+      missing: ['Autonomous Execution', 'Multi-Store Grid', 'Custom Logic Hub'],
+      cta: 'Initialize Node',
       popular: false,
+      color: 'ios-blue',
     },
     {
-      name: 'Growth',
+      name: 'Enterprise',
       price: billingCycle === 'monthly' ? 149 : 119,
-      description: 'For growing brands that need end-to-end autonomous workflows.',
+      description: 'End-to-end autonomous workflows for high-growth merchants.',
       features: [
-        'Up to 3 Connected Stores',
-        'Auto-Pilot Recovery Emails',
-        '1,000 AI Actions / month',
-        'Team Access (3 Seats)',
-        'Weekly Action Reports',
+        '3 Synchronized Stores',
+        'Autonomous Recovery Engine',
+        '1,000 Neural Actions / mo',
+        '3 Command Seats',
+        'Advanced ROI Projections',
       ],
-      missing: ['Custom AI Rules'],
-      cta: 'Start 14-Day Free Trial',
+      missing: ['Unlimited Store Grid'],
+      cta: 'Deploy Enterprise',
       popular: true,
+      color: 'ios-purple',
     },
     {
-      name: 'Scale',
+      name: 'Infinite',
       price: billingCycle === 'monthly' ? 349 : 279,
-      description: 'Advanced features for agencies and multi-brand operations.',
+      description: 'Unlimited orchestration for agencies and global portfolios.',
       features: [
-        'Unlimited Stores',
-        'Custom AI Workflow Rules',
-        'Unlimited AI Actions',
-        'Dedicated Support Manager',
-        'API Access',
-        'Predictive Churn Detection',
+        'Unlimited Store Grid',
+        'Custom Neural Logic',
+        'Unlimited Actions',
+        'Dedicated Solutions Architect',
+        'Direct API Ingestion',
+        'Predictive Churn Analysis',
       ],
       missing: [],
-      cta: 'Contact Sales',
+      cta: 'Contact Protocol',
       popular: false,
+      color: 'ios-indigo',
     },
   ];
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="text-center max-w-3xl mx-auto mb-12">
-        <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white sm:text-5xl mb-4">
-          Simple pricing, <span className="text-indigo-600 dark:text-indigo-400">massive ROI.</span>
+    <div className="min-h-[80vh] flex flex-col items-center py-16 px-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center max-w-3xl mx-auto mb-16"
+      >
+        <h2 className="text-4xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tighter mb-6 leading-tight">
+          Select Your <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-ios-blue via-ios-purple to-ios-indigo">Operational Scale.</span>
         </h2>
-        <p className="text-xl text-slate-500 dark:text-slate-400">
-          Try AutoAgent risk-free for 14 days. If it doesn&apos;t make you more money than it costs, cancel anytime.
+        <p className="text-lg font-medium text-slate-500 dark:text-zinc-400">
+          Initialize your command center with precision. No hidden overhead. Autonomous execution at scale.
         </p>
 
-        {/* Billing Toggle */}
-        <div className="mt-8 flex justify-center items-center gap-3">
-          <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>Monthly</span>
+        {/* Billing Toggle - iOS Segmented Control Style */}
+        <div className="mt-10 flex justify-center p-1 bg-black/5 dark:bg-white/5 rounded-2xl w-fit mx-auto backdrop-blur-xl border border-black/5 dark:border-white/5">
           <button
-            onClick={() => setBillingCycle(c => c === 'monthly' ? 'annual' : 'monthly')}
-            className="relative inline-flex h-7 w-14 items-center rounded-full bg-indigo-600 transition-colors"
+            onClick={() => setBillingCycle('monthly')}
+            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${billingCycle === 'monthly' ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}
           >
-            <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition duration-200 ease-in-out ${billingCycle === 'annual' ? 'translate-x-8' : 'translate-x-1'}`} />
+            Monthly
           </button>
-          <span className={`text-sm font-medium flex items-center gap-1.5 ${billingCycle === 'annual' ? 'text-slate-900 dark:text-white' : 'text-slate-500'}`}>
-            Annually <span className="bg-emerald-100 text-emerald-700 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wide font-bold">Save 20%</span>
-          </span>
+          <button
+            onClick={() => setBillingCycle('annual')}
+            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all relative ${billingCycle === 'annual' ? 'bg-white dark:bg-zinc-800 text-slate-900 dark:text-white shadow-xl' : 'text-slate-400 hover:text-slate-600'}`}
+          >
+            Annually
+            {billingCycle !== 'annual' && (
+              <span className="absolute -top-3 -right-3 bg-ios-green text-white text-[8px] px-2 py-1 rounded-full font-black animate-bounce shadow-lg">
+                -20%
+              </span>
+            )}
+          </button>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto w-full">
+      <div className="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto w-full px-4">
         {tiers.map((tier, index) => (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             key={tier.name}
-            className={`relative rounded-3xl p-8 shadow-xl ${
-              tier.popular 
-                ? 'bg-gradient-to-b from-indigo-600 to-purple-700 text-white border-none transform md:-translate-y-4 shadow-indigo-500/30' 
-                : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700'
-            }`}
+            className={`ios-card group relative flex flex-col ${tier.popular ? 'ring-4 ring-ios-purple/20 !border-ios-purple/30 scale-105 z-10 shadow-2xl shadow-ios-purple/10' : 'ios-card-hover'}`}
           >
             {tier.popular && (
-              <div className="absolute top-0 inset-x-0 flex justify-center -translate-y-1/2">
-                <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide flex items-center gap-1">
-                  <Zap className="w-3 h-3" /> Most Popular
+              <div className="absolute -top-4 inset-x-0 flex justify-center">
+                <span className="bg-gradient-to-r from-ios-purple to-ios-indigo text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-xl flex items-center gap-2">
+                  <Star className="w-3 h-3 fill-white" /> Recommended
                 </span>
               </div>
             )}
             
-            <div className="mb-6">
-              <h3 className={`text-2xl font-bold ${tier.popular ? 'text-white' : ''}`}>{tier.name}</h3>
-              <p className={`mt-2 text-sm ${tier.popular ? 'text-indigo-100' : 'text-slate-500 dark:text-slate-400'}`}>{tier.description}</p>
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{tier.name}</h3>
+                <div className={`w-10 h-10 rounded-xl bg-${tier.color}/10 flex items-center justify-center`}>
+                  {tier.name === 'Core' && <Zap className="w-5 h-5 text-ios-blue" />}
+                  {tier.name === 'Enterprise' && <Sparkles className="w-5 h-5 text-ios-purple" />}
+                  {tier.name === 'Infinite' && <Globe className="w-5 h-5 text-ios-indigo" />}
+                </div>
+              </div>
+              <p className="text-sm font-medium text-slate-500 dark:text-zinc-400 leading-relaxed">{tier.description}</p>
             </div>
             
-            <div className="mb-6">
-              <span className="text-5xl font-extrabold tracking-tight">${tier.price}</span>
-              <span className={`text-sm font-medium ${tier.popular ? 'text-indigo-200' : 'text-slate-500 dark:text-slate-400'}`}>/mo</span>
+            <div className="mb-8">
+              <div className="flex items-baseline gap-1">
+                <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter">${tier.price}</span>
+                <span className="text-sm font-black text-slate-400 uppercase tracking-widest">/ Node</span>
+              </div>
+              <div className="text-[10px] font-black text-ios-green uppercase tracking-widest mt-2">Billed {billingCycle}</div>
             </div>
             
-            <ul className="space-y-4 mb-8 flex-1">
+            <ul className="space-y-4 mb-10 flex-1">
               {tier.features.map(f => (
-                <li key={f} className="flex gap-3 text-sm">
-                  <Check className={`w-5 h-5 shrink-0 ${tier.popular ? 'text-indigo-300' : 'text-emerald-500'}`} />
-                  <span className={tier.popular ? 'text-white' : 'text-slate-700 dark:text-slate-300'}>{f}</span>
+                <li key={f} className="flex gap-3 text-sm items-start">
+                  <div className="mt-1 w-4 h-4 rounded-full bg-ios-green/10 flex items-center justify-center shrink-0">
+                    <Check className="w-2.5 h-2.5 text-ios-green stroke-[4]" />
+                  </div>
+                  <span className="font-bold text-slate-700 dark:text-zinc-300 tracking-tight">{f}</span>
                 </li>
               ))}
               {tier.missing.map(m => (
-                <li key={m} className="flex gap-3 text-sm opacity-50">
-                  <X className="w-5 h-5 shrink-0 text-slate-400" />
-                  <span className={tier.popular ? 'text-indigo-200' : 'text-slate-500'}>{m}</span>
+                <li key={m} className="flex gap-3 text-sm items-start opacity-30 grayscale">
+                  <div className="mt-1 w-4 h-4 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
+                    <X className="w-2.5 h-2.5 text-slate-400 stroke-[4]" />
+                  </div>
+                  <span className="font-bold text-slate-400 tracking-tight">{m}</span>
                 </li>
               ))}
             </ul>
             
             <button
               onClick={onSubscribe}
-              className={`w-full py-4 px-6 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
+              className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-xs transition-all flex items-center justify-center gap-3 ${
                 tier.popular 
-                  ? 'bg-white text-indigo-600 hover:bg-slate-50 hover:scale-105' 
-                  : 'bg-indigo-50 dark:bg-slate-700 text-indigo-600 dark:text-white hover:bg-indigo-100 dark:hover:bg-slate-600'
+                  ? 'ios-btn-primary shadow-xl shadow-ios-purple/30' 
+                  : 'bg-black/5 dark:bg-white/5 text-slate-600 dark:text-zinc-300 hover:bg-black/10 dark:hover:bg-white/10'
               }`}
             >
-              {tier.cta} <ArrowRight className="w-4 h-4" />
+              {tier.cta} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </motion.div>
         ))}
       </div>
       
-      <div className="mt-16 text-center flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400">
-        <Shield className="w-5 h-5" /> Secured via Stripe Billing
+      <div className="mt-20 px-8 py-4 ios-glass rounded-full flex items-center gap-4 border-white/5">
+        <Shield className="w-5 h-5 text-ios-green" />
+        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Enterprise-Grade Security • Stripe Protocol Verified</span>
       </div>
     </div>
   );

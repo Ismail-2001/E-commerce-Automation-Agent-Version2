@@ -9,8 +9,6 @@ import {
   Bot,
   Settings,
   LogOut,
-  Menu,
-  X,
   Mail,
   Store,
   Camera,
@@ -19,8 +17,10 @@ import {
   Activity,
   Users,
   Sun,
-  Moon
+  Moon,
+  ChevronRight
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface LayoutProps {
   currentView: ViewState;
@@ -29,170 +29,174 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ currentView, onNavigate, children }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const { merchant, user, signOut } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
 
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'inventory', label: 'Inventory', icon: Package },
+  const mainNavItems = [
+    { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
+    { id: 'inventory', label: 'Stock', icon: Package },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
-    { id: 'agent', label: 'AutoAgent AI', icon: Bot },
+    { id: 'agent', label: 'AI', icon: Bot },
+    { id: 'agents', label: 'Hub', icon: Users },
+  ];
+
+  const secondaryNavItems = [
     { id: 'agent-recovery', label: 'Recovery Agent', icon: Mail },
     { id: 'image-analysis', label: 'Image Analysis', icon: Camera },
     { id: 'forecasting', label: 'Forecasting', icon: TrendingUp },
     { id: 'connector', label: 'Storefront Sync', icon: Link2 },
-    { id: 'agents', label: 'Agent Hub', icon: Users },
     { id: 'activity-log', label: 'Activity Log', icon: Activity },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300 flex">
-      {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-slate-300 fixed h-full transition-all" role="navigation" aria-label="Main navigation">
-        <div className="p-6">
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <Bot className="w-6 h-6 text-indigo-400" aria-hidden="true" />
-            AutoAgent
-          </h1>
-          {merchant ? (
-            <div className="flex items-center gap-1.5 mt-1">
-              <Store className="w-3 h-3 text-slate-500" />
-              <p className="text-xs text-slate-500 truncate">{merchant.name}</p>
+    <div className="min-h-screen bg-[var(--color-ios-bg-light)] dark:bg-[var(--color-ios-bg-dark)] transition-colors duration-500">
+      {/* Sidebar - Desktop (iOS Style) */}
+      <aside className="hidden lg:flex flex-col w-72 fixed h-full bg-slate-100/50 dark:bg-zinc-900/50 backdrop-blur-3xl border-r border-black/5 dark:border-white/5 z-40">
+        <div className="p-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-ios-blue rounded-[1.2rem] flex items-center justify-center shadow-lg shadow-ios-blue/30">
+              <Bot className="w-6 h-6 text-white" />
             </div>
-          ) : (
-            <p className="text-xs text-slate-500 mt-1">E-Commerce Intelligence</p>
+            <h1 className="text-xl font-bold tracking-tight">AutoAgent</h1>
+          </div>
+          {merchant && (
+            <div className="flex items-center gap-2 px-1">
+              <Store className="w-3.5 h-3.5 text-ios-blue" />
+              <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider truncate">{merchant.name}</span>
+            </div>
           )}
         </div>
 
-        <nav className="flex-1 px-4 space-y-2 mt-4">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentView === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => onNavigate(item.id as ViewState)}
-                aria-label={`Navigate to ${item.label}`}
-                aria-current={isActive ? 'page' : undefined}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                  ${isActive
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                    : 'hover:bg-slate-800 text-slate-400 hover:text-white'
-                  }`}
-              >
-                <Icon className="w-5 h-5" aria-hidden="true" />
-                <span className="font-medium">{item.label}</span>
-              </button>
-            );
-          })}
-        </nav>
+        <div className="flex-1 px-4 space-y-6 overflow-y-auto scrollbar-hide">
+          <div className="space-y-1">
+            <p className="px-4 text-[11px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-[0.15em] mb-2">Main</p>
+            {mainNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentView === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.id as ViewState)}
+                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl transition-all duration-300 group
+                    ${isActive
+                      ? 'bg-white dark:bg-zinc-800 text-ios-blue shadow-sm ring-1 ring-black/5 dark:ring-white/5'
+                      : 'hover:bg-black/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400'
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`p-1.5 rounded-xl transition-colors ${isActive ? 'bg-ios-blue/10' : 'bg-transparent'}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="font-semibold text-sm">{item.label}</span>
+                  </div>
+                  {isActive && <ChevronRight className="w-4 h-4 opacity-50" />}
+                </button>
+              );
+            })}
+          </div>
 
-        <div className="p-4 border-t border-slate-800">
-          {user && (
-            <div className="px-4 py-2 mb-2">
-              <p className="text-xs text-slate-500 truncate">{user.email}</p>
-            </div>
-          )}
+          <div className="space-y-1">
+            <p className="px-4 text-[11px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-[0.15em] mb-2">Intelligence</p>
+            {secondaryNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentView === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.id as ViewState)}
+                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl transition-all duration-300 group
+                    ${isActive
+                      ? 'bg-white dark:bg-zinc-800 text-ios-blue shadow-sm ring-1 ring-black/5 dark:ring-white/5'
+                      : 'hover:bg-black/5 dark:hover:bg-white/5 text-slate-600 dark:text-zinc-400'
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`p-1.5 rounded-xl transition-colors ${isActive ? 'bg-ios-blue/10' : 'bg-transparent'}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="font-semibold text-sm">{item.label}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="p-4 border-t border-black/5 dark:border-white/5 space-y-2">
           <button
             onClick={toggleTheme}
-            aria-label="Toggle dark mode"
-            className="w-full flex items-center justify-between px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors mb-2"
+            className="w-full flex items-center justify-between px-4 py-3 rounded-2xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-all"
           >
             <div className="flex items-center gap-3">
-              {theme === 'dark' ? <Moon className="w-5 h-5" aria-hidden="true" /> : <Sun className="w-5 h-5" aria-hidden="true" />}
-              <span>{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+              {theme === 'dark' ? <Moon className="w-5 h-5 text-indigo-400" /> : <Sun className="w-5 h-5 text-amber-500" />}
+              <span className="font-semibold text-sm">{theme === 'dark' ? 'Dark' : 'Light'} Mode</span>
             </div>
-            <div className={`w-8 h-4 rounded-full flex items-center transition-colors ${theme === 'dark' ? 'bg-indigo-600' : 'bg-slate-600'} p-0.5`}>
-              <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`} />
+            <div className={`w-10 h-6 rounded-full p-1 transition-colors ${theme === 'dark' ? 'bg-ios-blue' : 'bg-slate-300'}`}>
+              <motion.div
+                animate={{ x: theme === 'dark' ? 16 : 0 }}
+                className="w-4 h-4 bg-white rounded-full shadow-md"
+              />
             </div>
           </button>
+          
           <button
             onClick={() => onNavigate('settings')}
-            aria-label="Navigate to Settings"
-            className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-slate-500 dark:text-zinc-400 hover:text-ios-blue transition-colors"
           >
-            <Settings className="w-5 h-5" aria-hidden="true" />
-            <span>Settings</span>
+            <Settings className="w-5 h-5" />
+            <span className="font-semibold text-sm">Settings</span>
           </button>
+
           {user && (
             <button
               onClick={signOut}
-              aria-label="Sign out"
-              className="w-full flex items-center gap-3 px-4 py-3 text-rose-400 hover:text-rose-300 hover:bg-rose-900/10 rounded-xl transition-colors mt-2"
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-ios-red hover:opacity-80 transition-colors"
             >
-              <LogOut className="w-5 h-5" aria-hidden="true" />
-              <span>Sign Out</span>
+              <LogOut className="w-5 h-5" />
+              <span className="font-semibold text-sm">Sign Out</span>
             </button>
           )}
         </div>
       </aside>
 
-      {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 w-full bg-slate-900 text-white z-50 px-4 py-3 flex justify-between items-center shadow-md" role="banner">
+      {/* Mobile Top Header (Clean iOS Style) */}
+      <header className="lg:hidden fixed top-0 w-full h-16 ios-glass z-50 flex items-center justify-between px-6">
         <div className="flex items-center gap-2">
-          <Bot className="w-6 h-6 text-indigo-400" aria-hidden="true" />
-          <span className="font-bold">AutoAgent</span>
-          {merchant && <span className="text-xs text-slate-400 ml-1">• {merchant.name}</span>}
+          <div className="w-8 h-8 bg-ios-blue rounded-[0.8rem] flex items-center justify-center">
+            <Bot className="w-5 h-5 text-white" />
+          </div>
+          <span className="font-bold tracking-tight text-lg">AutoAgent</span>
         </div>
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileMenuOpen}>
-          {mobileMenuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+        <button
+          onClick={() => onNavigate('settings')}
+          className="p-2 bg-black/5 dark:bg-white/5 rounded-full"
+        >
+          <Settings className="w-5 h-5" />
         </button>
-      </div>
+      </header>
 
-      {/* Mobile Nav Overlay */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-slate-900/95 z-40 pt-20 px-6 md:hidden">
-          <nav className="space-y-4">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    onNavigate(item.id as ViewState);
-                    setMobileMenuOpen(false);
-                  }}
-                  aria-label={`Navigate to ${item.label}`}
-                  aria-current={currentView === item.id ? 'page' : undefined}
-                  className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl text-lg font-medium
-                            ${currentView === item.id ? 'bg-indigo-600 text-white' : 'text-slate-300'}`}
-                >
-                  <Icon className="w-6 h-6" aria-hidden="true" />
-                  {item.label}
-                </button>
-              )
-            })}
-            {user && (
-              <button
-                onClick={() => { signOut(); setMobileMenuOpen(false); }}
-                className="w-full flex items-center gap-4 px-4 py-4 rounded-xl text-lg font-medium text-rose-400"
-              >
-                <LogOut className="w-6 h-6" />
-                Sign Out
-              </button>
-            )}
-            
-            {/* Mobile dark mode toggle */}
+      {/* Mobile Tab Bar (iOS Style) */}
+      <nav className="lg:hidden ios-tab-bar">
+        {mainNavItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = currentView === item.id;
+          return (
             <button
-              onClick={toggleTheme}
-              className="w-full flex items-center justify-between px-4 py-4 rounded-xl text-lg font-medium text-slate-300 border-t border-slate-800 mt-4"
+              key={item.id}
+              onClick={() => onNavigate(item.id as ViewState)}
+              className={`flex flex-col items-center gap-1 transition-all duration-300 ${isActive ? 'text-ios-blue' : 'text-slate-400 dark:text-zinc-500'}`}
             >
-              <div className="flex items-center gap-4">
-                {theme === 'dark' ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
-                {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
-              </div>
-              <div className={`w-10 h-5 rounded-full flex items-center transition-colors ${theme === 'dark' ? 'bg-indigo-600' : 'bg-slate-600'} p-0.5`}>
-                <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform ${theme === 'dark' ? 'translate-x-5' : 'translate-x-0'}`} />
-              </div>
+              <Icon className={`w-6 h-6 transition-transform ${isActive ? 'scale-110' : ''}`} />
+              <span className="text-[10px] font-bold tracking-tight">{item.label}</span>
+              {isActive && <motion.div layoutId="tab-indicator" className="w-1 h-1 bg-ios-blue rounded-full absolute -bottom-1" />}
             </button>
-          </nav>
-        </div>
-      )}
+          );
+        })}
+      </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 md:ml-64 p-4 md:p-8 pt-20 md:pt-8 min-h-screen">
-        <div className="max-w-7xl mx-auto">
+      <main className="flex-1 lg:ml-72 p-4 lg:p-10 pt-20 lg:pt-10 pb-32 lg:pb-10 min-h-screen">
+        <div className="max-w-6xl mx-auto">
           {children}
         </div>
       </main>

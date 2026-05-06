@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Store, Download, CheckCircle, ArrowRight, Loader2, Play } from 'lucide-react';
+import { Store, Download, CheckCircle, ArrowRight, Loader2, Globe, ShieldCheck, Zap, Sparkles } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 
 const OnboardingWizard: React.FC = () => {
@@ -17,7 +17,7 @@ const OnboardingWizard: React.FC = () => {
     setTimeout(() => {
       setLoading(false);
       nextStep();
-    }, 1500); // simulate connection delay
+    }, 2000);
   };
 
   const handleSyncData = () => {
@@ -25,65 +25,89 @@ const OnboardingWizard: React.FC = () => {
     setTimeout(() => {
       setLoading(false);
       nextStep();
-    }, 2000); // simulate data sync
+    }, 2500);
   };
 
   const handleFinish = () => {
-    // Calling completeOnboarding will hide the wizard and show Dashboard
     if (completeOnboarding) {
         completeOnboarding();
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 relative overflow-hidden font-sans">
+      {/* Background Orbs */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-0">
+        <motion.div
+          animate={{ scale: [1, 1.1, 1], rotate: [0, 90, 0] }}
+          transition={{ duration: 20, repeat: Infinity }}
+          className="absolute -top-[10%] -right-[10%] w-[50%] h-[50%] bg-ios-blue/10 rounded-full blur-[100px]"
+        />
+        <motion.div
+          animate={{ scale: [1.1, 1, 1.1], rotate: [0, -90, 0] }}
+          transition={{ duration: 25, repeat: Infinity }}
+          className="absolute -bottom-[10%] -left-[10%] w-[50%] h-[50%] bg-ios-purple/10 rounded-full blur-[100px]"
+        />
+      </div>
+
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="max-w-xl w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-100 dark:border-slate-700"
+        initial={{ opacity: 0, y: 20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        className="max-w-xl w-full ios-glass !p-0 overflow-hidden border-white/10 shadow-2xl relative z-10"
       >
-        {/* Progress Bar */}
-        <div className="w-full bg-slate-100 dark:bg-slate-700 h-2">
-          <motion.div 
-            className="bg-indigo-600 h-2" 
-            initial={{ width: '33%' }}
-            animate={{ width: `${(step / 3) * 100}%` }}
-            transition={{ duration: 0.3 }}
-          />
+        {/* iOS Style Header */}
+        <div className="px-8 pt-8 pb-6 text-center border-b border-white/5 bg-white/[0.02]">
+          <div className="flex justify-center mb-4">
+            <div className="flex gap-1.5">
+              {[1, 2, 3].map((s) => (
+                <div 
+                  key={s}
+                  className={`h-1.5 transition-all duration-500 rounded-full ${s === step ? 'w-8 bg-ios-blue shadow-[0_0_12px_rgba(0,122,255,0.5)]' : s < step ? 'w-4 bg-ios-green' : 'w-4 bg-white/10'}`}
+                />
+              ))}
+            </div>
+          </div>
+          <h1 className="text-xl font-black text-white tracking-tight uppercase tracking-[0.2em] opacity-50">Setup Wizard</h1>
         </div>
 
-        <div className="p-8">
+        <div className="p-10">
           <AnimatePresence mode="wait">
             {step === 1 && (
               <motion.div 
                 key="step1"
-                initial={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="text-center space-y-6"
+                exit={{ opacity: 0, x: -30 }}
+                className="space-y-8"
               >
-                <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto">
-                  <Store className="w-8 h-8" />
+                <div className="text-center space-y-3">
+                  <div className="w-20 h-20 bg-ios-blue/10 rounded-[2rem] flex items-center justify-center mx-auto border border-ios-blue/20">
+                    <Globe className="w-10 h-10 text-ios-blue" />
+                  </div>
+                  <h2 className="text-3xl font-black text-white tracking-tighter">Initialize Domain</h2>
+                  <p className="text-zinc-400 font-medium max-w-sm mx-auto leading-relaxed">
+                    Link your enterprise storefront to the AutoAgent neural network.
+                  </p>
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold dark:text-white mb-2">Connect Your Store</h2>
-                  <p className="text-slate-500 dark:text-slate-400">Link your Shopify or WooCommerce store to allow AutoAgent to analyze your data.</p>
-                </div>
+                
                 <div className="space-y-4">
-                  <input 
-                    type="text" 
-                    placeholder="mystore.myshopify.com" 
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                  />
+                  <div className="relative group">
+                    <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500 group-focus-within:text-ios-blue transition-colors" />
+                    <input 
+                      type="text" 
+                      placeholder="enterprise.myshopify.com" 
+                      className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/5 rounded-2xl text-white font-bold placeholder:text-zinc-600 focus:bg-white/10 focus:ring-2 focus:ring-ios-blue outline-none transition-all"
+                    />
+                  </div>
                   <button 
                     onClick={handleConnectStore}
                     disabled={loading}
-                    className="w-full bg-indigo-600 text-white font-semibold py-3 rounded-xl hover:bg-indigo-700 transition flex justify-center items-center gap-2 disabled:opacity-70"
+                    className="w-full ios-btn-primary py-4 shadow-xl shadow-ios-blue/20"
                   >
-                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Connect Store'}
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Sync Endpoint <ArrowRight className="w-5 h-5 ml-2" /></>}
                   </button>
-                  <button onClick={handleConnectStore} className="text-sm text-slate-500 hover:text-indigo-600 font-medium">
-                    Use demo store instead
+                  <button onClick={handleConnectStore} className="w-full text-xs font-black text-zinc-500 hover:text-ios-blue uppercase tracking-widest transition-colors py-2">
+                    Initialize Demo Instance
                   </button>
                 </div>
               </motion.div>
@@ -92,33 +116,43 @@ const OnboardingWizard: React.FC = () => {
             {step === 2 && (
               <motion.div 
                 key="step2"
-                initial={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="text-center space-y-6"
+                exit={{ opacity: 0, x: -30 }}
+                className="space-y-8"
               >
-                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto">
-                  <Download className="w-8 h-8" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold dark:text-white mb-2">Syncing Data</h2>
-                  <p className="text-slate-500 dark:text-slate-400">AutoAgent is ingesting your products, orders, and customer history.</p>
+                <div className="text-center space-y-3">
+                  <div className="w-20 h-20 bg-ios-purple/10 rounded-[2rem] flex items-center justify-center mx-auto border border-ios-purple/20">
+                    {loading ? <Zap className="w-10 h-10 text-ios-purple animate-pulse" /> : <Download className="w-10 h-10 text-ios-purple" />}
+                  </div>
+                  <h2 className="text-3xl font-black text-white tracking-tighter">Neural Ingestion</h2>
+                  <p className="text-zinc-400 font-medium max-w-sm mx-auto leading-relaxed">
+                    AutoAgent is currently mapping your store&apos;s digital DNA and behavioral patterns.
+                  </p>
                 </div>
                 
                 {loading ? (
-                  <div className="space-y-4">
-                    <Loader2 className="w-10 h-10 animate-spin text-indigo-600 mx-auto" />
-                    <p className="text-sm text-indigo-600 font-medium animate-pulse">Analyzing 4,203 data points...</p>
+                  <div className="space-y-6">
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: '100%' }}
+                        transition={{ duration: 2.5 }}
+                        className="h-full bg-gradient-to-r from-ios-blue to-ios-purple"
+                      />
+                    </div>
+                    <div className="flex justify-between items-center px-2">
+                      <span className="text-[10px] font-black text-ios-blue uppercase tracking-widest animate-pulse">Syncing Payload...</span>
+                      <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">88% Complete</span>
+                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <button 
-                      onClick={handleSyncData}
-                      className="w-full bg-indigo-600 text-white font-semibold py-3 rounded-xl hover:bg-indigo-700 transition"
-                    >
-                      Start Sync
-                    </button>
-                  </div>
+                  <button 
+                    onClick={handleSyncData}
+                    className="w-full ios-btn-primary py-4 shadow-xl shadow-ios-blue/20"
+                  >
+                    Start Ingestion Protocol
+                  </button>
                 )}
               </motion.div>
             )}
@@ -126,26 +160,44 @@ const OnboardingWizard: React.FC = () => {
             {step === 3 && (
               <motion.div 
                 key="step3"
-                initial={{ opacity: 0, x: 20 }}
+                initial={{ opacity: 0, x: 30 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="text-center space-y-6"
+                exit={{ opacity: 0, x: -30 }}
+                className="space-y-8"
               >
-                <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle className="w-8 h-8" />
+                <div className="text-center space-y-3">
+                  <div className="w-20 h-20 bg-ios-green/10 rounded-[2rem] flex items-center justify-center mx-auto border border-ios-green/20">
+                    <CheckCircle className="w-10 h-10 text-ios-green" />
+                  </div>
+                  <h2 className="text-3xl font-black text-white tracking-tighter">System Ready</h2>
+                  <p className="text-zinc-400 font-medium max-w-sm mx-auto leading-relaxed">
+                    Core established. AutoAgent has identified <span className="text-ios-green font-black">$4,200.00</span> in latent recovery potential.
+                  </p>
                 </div>
-                <div>
-                  <h2 className="text-2xl font-bold dark:text-white mb-2">You&apos;re All Set!</h2>
-                  <p className="text-slate-500 dark:text-slate-400">AutoAgent found $4,200 in recently abandoned carts. Activate the Recovery Agent to win them back.</p>
+
+                <div className="ios-glass !bg-white/5 p-6 rounded-2xl border-white/5 space-y-4">
+                  {[
+                    { label: 'Inventory Mapping', status: 'Optimal', icon: Sparkles },
+                    { label: 'Revenue Recovery', status: 'Active', icon: Zap },
+                    { label: 'Security Layer', status: 'Encrypted', icon: ShieldCheck },
+                  ].map((item, i) => (
+                    <div key={i} className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <item.icon className="w-3.5 h-3.5 text-zinc-500" />
+                        <span className="text-xs font-bold text-zinc-400">{item.label}</span>
+                      </div>
+                      <span className="text-[10px] font-black text-ios-green uppercase tracking-widest">{item.status}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="pt-4">
-                  <button 
-                    onClick={handleFinish}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold flex items-center justify-center gap-2 py-4 rounded-xl shadow-lg hover:shadow-indigo-500/25 transition-all hover:scale-[1.02]"
-                  >
-                    Go to Dashboard <ArrowRight className="w-5 h-5" />
-                  </button>
-                </div>
+
+                <button 
+                  onClick={handleFinish}
+                  className="w-full ios-btn-primary py-5 text-lg font-black tracking-tight shadow-2xl shadow-ios-blue/20 group"
+                >
+                  Enter Command Center 
+                  <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
