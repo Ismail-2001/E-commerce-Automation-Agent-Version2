@@ -107,3 +107,11 @@ export const MOCK_CARTS: Cart[] = [
     status: 'active'
   }
 ];
+
+export const MOCK_ACTIVITY = [
+  { id: '1', agent_type: 'Recovery', message: 'Successfully recovered Cart #8982 - Revenue potential: $145.00', created_at: new Date().toISOString() },
+  { id: '2', agent_type: 'Inventory', message: 'Low stock alert: Lumina Smart Lamp (5 units remaining)', created_at: new Date().toISOString() },
+  { id: '3', agent_type: 'Pricing', message: 'Optimized price for Zenith Headphones (+12% uplift)', created_at: new Date().toISOString() },
+  { id: '4', agent_type: 'Orders', message: 'New high-value order processed for Bob Smith', created_at: new Date().toISOString() },
+  { id: '5', agent_type: 'Recovery', message: 'Sent 1st recovery sequence to Michael Chen', created_at: new Date().toISOString() },
+];

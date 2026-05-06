@@ -98,35 +98,35 @@ const Inventory: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 onClick={() => handleAnalyze(product)}
-                className={`ios-card ios-card-hover group flex items-center gap-5 p-5
+                className={`ios-card ios-card-hover group flex flex-col sm:flex-row items-center gap-5 p-5 w-full
                   ${selectedProduct?.id === product.id ? 'ring-2 ring-ios-blue shadow-lg shadow-ios-blue/10' : ''}`}
               >
-                <div className="relative">
+                <div className="relative flex-shrink-0">
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="w-16 h-16 rounded-[1.25rem] object-cover bg-slate-100 dark:bg-zinc-800 shadow-inner group-hover:scale-105 transition-transform duration-500"
+                    className="w-16 h-16 sm:w-16 sm:h-16 rounded-[1.25rem] object-cover bg-slate-100 dark:bg-zinc-800 shadow-inner group-hover:scale-105 transition-transform duration-500"
                   />
                   {product.stock < 10 && (
                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-ios-orange rounded-full border-2 border-white dark:border-zinc-900" />
                   )}
                 </div>
 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 text-center sm:text-left">
                   <h3 className="font-bold text-slate-900 dark:text-white truncate text-lg">
                     {product.name}
                   </h3>
-                  <div className="text-[11px] font-bold text-slate-400 dark:text-zinc-500 flex gap-2 uppercase tracking-[0.1em] mt-1">
+                  <div className="text-[11px] font-bold text-slate-400 dark:text-zinc-500 flex flex-wrap justify-center sm:justify-start gap-2 uppercase tracking-[0.1em] mt-1">
                     <span>{product.category}</span>
                     <span>•</span>
                     <span>SKU: {product.id}</span>
                   </div>
                 </div>
 
-                <div className="text-right">
+                <div className="flex flex-row sm:flex-col items-center sm:items-end gap-4 sm:gap-0">
                   <div className="font-bold text-slate-900 dark:text-white text-xl">${product.price}</div>
                   <div
-                    className={`text-[10px] font-black px-2.5 py-1 rounded-full inline-block mt-2 uppercase tracking-widest
+                    className={`text-[10px] font-black px-2.5 py-1 rounded-full inline-block sm:mt-2 uppercase tracking-widest
                     ${
                       product.stock === 0
                         ? 'bg-ios-red/10 text-ios-red'
@@ -138,7 +138,7 @@ const Inventory: React.FC = () => {
                     {product.stock} units
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-300 group-hover:translate-x-1 transition-transform" />
+                <ChevronRight className="hidden sm:block w-5 h-5 text-slate-300 group-hover:translate-x-1 transition-transform" />
               </motion.div>
             ))}
           </AnimatePresence>

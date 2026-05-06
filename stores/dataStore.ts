@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
 import { Product, Order, Cart, SalesData } from '../types';
-import { MOCK_PRODUCTS, MOCK_ORDERS, MOCK_CARTS, SALES_DATA } from '../constants';
+import { MOCK_PRODUCTS, MOCK_ORDERS, MOCK_CARTS, SALES_DATA, MOCK_ACTIVITY } from '../constants';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 /** Extended product with DB primary key for mutations */
@@ -94,6 +94,7 @@ export const useDataStore = create<DataState>((set, get) => ({
       orders: MOCK_ORDERS,
       carts: MOCK_CARTS,
       salesData: SALES_DATA,
+      agentActivity: MOCK_ACTIVITY,
       useLiveData: false,
     });
   },

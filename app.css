@@ -25,7 +25,7 @@
 
 @layer base {
   body {
-    @apply bg-[var(--color-ios-bg-light)] dark:bg-[var(--color-ios-bg-dark)] text-slate-900 dark:text-white antialiased selection:bg-ios-blue/30 overflow-x-hidden;
+    @apply bg-[var(--color-ios-bg-light)] dark:bg-[var(--color-ios-bg-dark)] text-slate-900 dark:text-white antialiased selection:bg-ios-blue/30 overflow-x-hidden w-full max-w-full;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     -webkit-font-smoothing: antialiased;
   }
@@ -37,7 +37,7 @@
   }
   
   .ios-card {
-    @apply bg-[var(--color-ios-card-light)] dark:bg-[#121214] rounded-[2.5rem] p-8 shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] border border-black/5 dark:border-white/5 transition-all duration-500;
+    @apply bg-[var(--color-ios-card-light)] dark:bg-[#121214] rounded-[2.5rem] p-8 shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] border border-black/5 dark:border-white/5 transition-all duration-500 max-w-full overflow-hidden;
   }
   
   .ios-card-hover {

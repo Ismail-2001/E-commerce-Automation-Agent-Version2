@@ -91,7 +91,27 @@ export async function llmChat(
 
   // Fallback: direct API call (development only)
   if (provider === 'deepseek') {
+    if (!DEEPSEEK_API_KEY) {
+      // Mock Response for Demo
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve({
+            text: jsonMode 
+              ? JSON.stringify({ text: "I've analyzed your store data. Sales are trending upwards by 12% this week, mainly driven by the 'Lumina Smart Lamp'.", ui_widget: "none", widget_data: {} })
+              : "I've analyzed your store data. Sales are trending upwards by 12% this week, mainly driven by the 'Lumina Smart Lamp'."
+          });
+        }, 1000);
+      });
+    }
     return callDeepSeekDirect(safeMessage, systemPrompt, temperature, jsonMode);
+  }
+
+  if (!GEMINI_API_KEY) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({ text: "Demo Mode: The Intelligence Engine is active and scanning your repository for insights. Integration with live APIs will proceed once keys are configured." });
+      }, 1000);
+    });
   }
 
   return callGeminiDirect(safeMessage, systemPrompt, temperature);

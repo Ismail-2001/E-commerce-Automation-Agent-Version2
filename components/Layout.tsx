@@ -49,7 +49,7 @@ const Layout: React.FC<LayoutProps> = ({ currentView, onNavigate, children }) =>
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--color-ios-bg-light)] dark:bg-[var(--color-ios-bg-dark)] transition-colors duration-500">
+    <div className="min-h-screen bg-[var(--color-ios-bg-light)] dark:bg-[var(--color-ios-bg-dark)] transition-colors duration-500 overflow-x-hidden max-w-full">
       {/* Sidebar - Desktop (iOS Style) */}
       <aside className="hidden lg:flex flex-col w-72 fixed h-full bg-slate-100/50 dark:bg-zinc-900/50 backdrop-blur-3xl border-r border-black/5 dark:border-white/5 z-40">
         <div className="p-8">
@@ -195,8 +195,8 @@ const Layout: React.FC<LayoutProps> = ({ currentView, onNavigate, children }) =>
       </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 lg:ml-72 p-4 lg:p-10 pt-20 lg:pt-10 pb-32 lg:pb-10 min-h-screen">
-        <div className="max-w-6xl mx-auto">
+      <main className="flex-1 lg:ml-72 p-4 lg:p-10 pt-20 lg:pt-10 pb-32 lg:pb-10 min-h-screen overflow-x-hidden max-w-full">
+        <div className="max-w-6xl mx-auto overflow-x-hidden">
           {children}
         </div>
       </main>

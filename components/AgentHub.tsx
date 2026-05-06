@@ -77,10 +77,10 @@ const AgentHub: React.FC = () => {
           <h1 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">Intelligence <span className="text-ios-pink">Hub</span></h1>
           <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px] mt-2">Multi-Agent Command Center</p>
         </div>
-        <div className="ios-glass p-1 rounded-2xl flex gap-1 border border-black/5 dark:border-white/5 shadow-sm">
+        <div className="ios-glass p-1 rounded-2xl flex gap-1 border border-black/5 dark:border-white/5 shadow-sm overflow-x-auto scrollbar-hide max-w-full">
           <button 
             onClick={() => setActiveAgent('overview')}
-            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeAgent === 'overview' ? 'bg-white dark:bg-zinc-800 text-ios-blue shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all shrink-0 ${activeAgent === 'overview' ? 'bg-white dark:bg-zinc-800 text-ios-blue shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
           >
             Overview
           </button>
@@ -88,7 +88,7 @@ const AgentHub: React.FC = () => {
             <button
               key={agent.id}
               onClick={() => setActiveAgent(agent.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeAgent === agent.id ? 'bg-white dark:bg-zinc-800 text-ios-blue shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all shrink-0 ${activeAgent === agent.id ? 'bg-white dark:bg-zinc-800 text-ios-blue shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
             >
               {agent.name}
             </button>
